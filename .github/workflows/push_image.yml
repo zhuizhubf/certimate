@@ -14,7 +14,7 @@ on:
         default: "latest"
 
 jobs:
-  build-and-push:
+  build-and-save:
     runs-on: ubuntu-latest
 
     steps:
@@ -39,7 +39,7 @@ jobs:
             type=semver,pattern=v{{version}}
             type=semver,pattern=v{{major}}.{{minor}}
 
-      - name: Build and push Docker image
+      - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -47,7 +47,14 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: false
           tags: ${{ steps.meta.outputs.tags }}
-      - run: |
-          docker images
-        
+          outputs: type=docker,dest=./certimate-image.tar
 
+      - name: Display Docker images
+        run: docker images
+
+      - name: Upload image as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-image
+          path: ./certimate-image.tar
+          retention-days: 7
