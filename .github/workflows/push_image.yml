@@ -47,7 +47,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: false
           tags: ${{ steps.meta.outputs.tags }}
-          outputs: type=​​oci,dest=./certimate-image.tar
+          outputs: type=oci,dest=./certimate-image.tar
 
       - name: Display Docker images
         run: docker images
