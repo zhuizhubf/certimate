@@ -47,14 +47,17 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: false
           tags: ${{ steps.meta.outputs.tags }}
-          outputs: type=docker,dest=./certimate-image.tar
+          outputs: type=​​oci,dest=./certimate-image.tar
 
       - name: Display Docker images
         run: docker images
+
+      - name: Save images
+        run: docker save -o certimate-image-off.tar usual2970/certimate:main
 
       - name: Upload image as artifact
         uses: actions/upload-artifact@v4
         with:
           name: docker-image
-          path: ./certimate-image.tar
+          path: ./certimate-image-off.tar
           retention-days: 7
