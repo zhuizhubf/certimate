@@ -20,45 +20,26 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
+        
+      - name: Setup Docker
+        uses: docker-practice/actions-setup-docker@master
         with:
-          images: |
-            usual2970/certimate
-            registry.cn-shanghai.aliyuncs.com/usual2970/certimate
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern=v{{version}}
-            type=semver,pattern=v{{major}}.{{minor}}
+          docker_version: 20.10
+          docker_channel: stable
 
-      - name: Log in to DOCKERHUB
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      - name: Log in to ALIYUNCS
-        uses: docker/login-action@v3
-        with:
-          registry: registry.cn-shanghai.aliyuncs.com
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
+      - name: Docker Version
+        run: |
+          set -x
+          docker version
+        
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        run: |
+          docker buildx build -f ./Dockerfile --tag certimate:main .
+          docker save -o certimate_main.tar certimate:main
+
+      - name: Upload ccache archive
+        uses: actions/upload-artifact@v4
         with:
-          context: .
-          file: ./Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          path: ./certimate_main.tar
+          name: certimate_main.tar
 
