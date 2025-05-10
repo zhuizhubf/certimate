@@ -33,7 +33,7 @@ jobs:
         
       - name: Build and push Docker image
         run: |
-          docker buildx build -f ./Dockerfile --tag certimate:main .
+          docker buildx build -f ./Dockerfile --tag certimate:main --load .
 
       - name: Print Docker image
         run: |
