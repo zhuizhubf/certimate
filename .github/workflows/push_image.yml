@@ -24,7 +24,6 @@ jobs:
       - name: Setup Docker
         uses: docker-practice/actions-setup-docker@master
         with:
-          docker_version: 20.10
           docker_channel: stable
 
       - name: Docker Version
