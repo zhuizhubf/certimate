@@ -34,6 +34,13 @@ jobs:
       - name: Build and push Docker image
         run: |
           docker buildx build -f ./Dockerfile --tag certimate:main .
+
+      - name: Print Docker image
+        run: |
+          docker images
+          
+      - name: Save Docker image
+        run: |
           docker save -o certimate_main.tar certimate:main
 
       - name: Upload ccache archive
