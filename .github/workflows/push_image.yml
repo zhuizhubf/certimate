@@ -21,7 +21,7 @@ jobs:
       - name: daemon
         run: |
           mkdir -p /etc/docker
-          touch /etc/docker/daemon.json
+          echo '{"experimental": true}' | sudo tee /etc/docker/daemon.json
           
       - name: Checkout code
         uses: actions/checkout@v4
