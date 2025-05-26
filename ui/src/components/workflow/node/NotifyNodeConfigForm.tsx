@@ -19,7 +19,7 @@ import { useNotifyChannelsStore } from "@/stores/notify";
 
 import NotifyNodeConfigFormEmailConfig from "./NotifyNodeConfigFormEmailConfig";
 import NotifyNodeConfigFormMattermostConfig from "./NotifyNodeConfigFormMattermostConfig";
-import NotifyNodeConfigFormTelegramConfig from "./NotifyNodeConfigFormTelegramConfig";
+import NotifyNodeConfigFormTelegramBotConfig from "./NotifyNodeConfigFormTelegramBotConfig";
 import NotifyNodeConfigFormWebhookConfig from "./NotifyNodeConfigFormWebhookConfig";
 
 type NotifyNodeConfigFormFieldValues = Partial<WorkflowNodeConfigForNotify>;
@@ -114,8 +114,8 @@ const NotifyNodeConfigForm = forwardRef<NotifyNodeConfigFormInstance, NotifyNode
           return <NotifyNodeConfigFormEmailConfig {...nestedFormProps} />;
         case NOTIFICATION_PROVIDERS.MATTERMOST:
           return <NotifyNodeConfigFormMattermostConfig {...nestedFormProps} />;
-        case NOTIFICATION_PROVIDERS.TELEGRAM:
-          return <NotifyNodeConfigFormTelegramConfig {...nestedFormProps} />;
+        case NOTIFICATION_PROVIDERS.TELEGRAMBOT:
+          return <NotifyNodeConfigFormTelegramBotConfig {...nestedFormProps} />;
         case NOTIFICATION_PROVIDERS.WEBHOOK:
           return <NotifyNodeConfigFormWebhookConfig {...nestedFormProps} />;
       }
@@ -177,10 +177,10 @@ const NotifyNodeConfigForm = forwardRef<NotifyNodeConfigFormInstance, NotifyNode
         </Form.Item>
 
         <Form.Item name="message" label={t("workflow_node.notify.form.message.label")} rules={[formRule]}>
-          <Input.TextArea autoSize={{ minRows: 3, maxRows: 5 }} placeholder={t("workflow_node.notify.form.message.placeholder")} />
+          <Input.TextArea autoSize={{ minRows: 3, maxRows: 10 }} placeholder={t("workflow_node.notify.form.message.placeholder")} />
         </Form.Item>
 
-        <Form.Item className="mb-0">
+        <Form.Item className="mb-0" htmlFor="null">
           <label className="mb-1 block">
             <div className="flex w-full items-center justify-between gap-4">
               <div className="max-w-full grow truncate line-through">{t("workflow_node.notify.form.channel.label")}</div>
@@ -224,7 +224,7 @@ const NotifyNodeConfigForm = forwardRef<NotifyNodeConfigFormInstance, NotifyNode
           />
         </Form.Item>
 
-        <Form.Item className="mb-0">
+        <Form.Item className="mb-0" htmlFor="null">
           <label className="mb-1 block">
             <div className="flex w-full items-center justify-between gap-4">
               <div className="max-w-full grow truncate">
@@ -260,13 +260,14 @@ const NotifyNodeConfigForm = forwardRef<NotifyNodeConfigFormInstance, NotifyNode
                 return !!provider?.usages?.includes(ACCESS_USAGES.NOTIFICATION);
               }}
               placeholder={t("workflow_node.notify.form.provider_access.placeholder")}
+              showSearch
               onChange={handleProviderAccessSelect}
             />
           </Form.Item>
         </Form.Item>
 
         <Show when={!!nestedFormEl}>
-          <Divider className="my-1">
+          <Divider size="small">
             <Typography.Text className="text-xs font-normal" type="secondary">
               {t("workflow_node.notify.form.params_config.label")}
             </Typography.Text>

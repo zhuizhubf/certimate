@@ -1,15 +1,18 @@
-import { forwardRef, useImperativeHandle, useMemo } from "react";
+import { forwardRef, useImperativeHandle, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
+import AccessProviderPicker from "@/components/provider/AccessProviderPicker";
 import AccessProviderSelect from "@/components/provider/AccessProviderSelect";
+import Show from "@/components/Show";
 import { type AccessModel } from "@/domain/access";
-import { ACCESS_PROVIDERS, ACCESS_USAGES } from "@/domain/provider";
+import { ACCESS_PROVIDERS, ACCESS_USAGES, type AccessProvider } from "@/domain/provider";
 import { useAntdForm, useAntdFormName } from "@/hooks";
 
 import AccessForm1PanelConfig from "./AccessForm1PanelConfig";
+import AccessFormACMECAConfig from "./AccessFormACMECAConfig";
 import AccessFormACMEHttpReqConfig from "./AccessFormACMEHttpReqConfig";
 import AccessFormAliyunConfig from "./AccessFormAliyunConfig";
 import AccessFormAWSConfig from "./AccessFormAWSConfig";
@@ -17,6 +20,7 @@ import AccessFormAzureConfig from "./AccessFormAzureConfig";
 import AccessFormBaiduCloudConfig from "./AccessFormBaiduCloudConfig";
 import AccessFormBaishanConfig from "./AccessFormBaishanConfig";
 import AccessFormBaotaPanelConfig from "./AccessFormBaotaPanelConfig";
+import AccessFormBaotaWAFConfig from "./AccessFormBaotaWAFConfig";
 import AccessFormBunnyConfig from "./AccessFormBunnyConfig";
 import AccessFormBytePlusConfig from "./AccessFormBytePlusConfig";
 import AccessFormCacheFlyConfig from "./AccessFormCacheFlyConfig";
@@ -31,6 +35,7 @@ import AccessFormDogeCloudConfig from "./AccessFormDogeCloudConfig";
 import AccessFormDynv6Config from "./AccessFormDynv6Config";
 import AccessFormEdgioConfig from "./AccessFormEdgioConfig";
 import AccessFormEmailConfig from "./AccessFormEmailConfig";
+import AccessFormFlexCDNConfig from "./AccessFormFlexCDNConfig";
 import AccessFormGcoreConfig from "./AccessFormGcoreConfig";
 import AccessFormGnameConfig from "./AccessFormGnameConfig";
 import AccessFormGoDaddyConfig from "./AccessFormGoDaddyConfig";
@@ -40,20 +45,24 @@ import AccessFormHuaweiCloudConfig from "./AccessFormHuaweiCloudConfig";
 import AccessFormJDCloudConfig from "./AccessFormJDCloudConfig";
 import AccessFormKubernetesConfig from "./AccessFormKubernetesConfig";
 import AccessFormLarkBotConfig from "./AccessFormLarkBotConfig";
+import AccessFormLeCDNConfig from "./AccessFormLeCDNConfig";
 import AccessFormMattermostConfig from "./AccessFormMattermostConfig";
 import AccessFormNamecheapConfig from "./AccessFormNamecheapConfig";
 import AccessFormNameDotComConfig from "./AccessFormNameDotComConfig";
 import AccessFormNameSiloConfig from "./AccessFormNameSiloConfig";
+import AccessFormNetcupConfig from "./AccessFormNetcupConfig";
+import AccessFormNetlifyConfig from "./AccessFormNetlifyConfig";
 import AccessFormNS1Config from "./AccessFormNS1Config";
 import AccessFormPorkbunConfig from "./AccessFormPorkbunConfig";
 import AccessFormPowerDNSConfig from "./AccessFormPowerDNSConfig";
 import AccessFormProxmoxVEConfig from "./AccessFormProxmoxVEConfig";
 import AccessFormQiniuConfig from "./AccessFormQiniuConfig";
 import AccessFormRainYunConfig from "./AccessFormRainYunConfig";
+import AccessFormRatPanelConfig from "./AccessFormRatPanelConfig";
 import AccessFormSafeLineConfig from "./AccessFormSafeLineConfig";
 import AccessFormSSHConfig from "./AccessFormSSHConfig";
 import AccessFormSSLComConfig from "./AccessFormSSLComConfig";
-import AccessFormTelegramConfig from "./AccessFormTelegramConfig";
+import AccessFormTelegramBotConfig from "./AccessFormTelegramBotConfig";
 import AccessFormTencentCloudConfig from "./AccessFormTencentCloudConfig";
 import AccessFormUCloudConfig from "./AccessFormUCloudConfig";
 import AccessFormUpyunConfig from "./AccessFormUpyunConfig";
@@ -107,9 +116,22 @@ const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className,
   });
   const formRule = createSchemaFieldRule(formSchema);
   const { form: formInst, formProps } = useAntdForm({
+    name: "accessForm",
     initialValues: initialValues,
   });
 
+  const providerFilter = useMemo(() => {
+    switch (usage) {
+      case "both-dns-hosting":
+        return (record: AccessProvider) => record.usages.includes(ACCESS_USAGES.DNS) || record.usages.includes(ACCESS_USAGES.HOSTING);
+      case "ca-only":
+        return (record: AccessProvider) => record.usages.includes(ACCESS_USAGES.CA);
+      case "notification-only":
+        return (record: AccessProvider) => record.usages.includes(ACCESS_USAGES.NOTIFICATION);
+    }
+
+    return undefined;
+  }, [usage]);
   const providerLabel = useMemo(() => {
     switch (usage) {
       case "ca-only":
@@ -139,10 +161,11 @@ const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className,
     return undefined;
   }, [usage]);
 
-  const fieldProvider = Form.useWatch("provider", formInst);
+  const fieldProvider = Form.useWatch<z.infer<typeof formSchema>["provider"]>("provider", formInst);
+  const [fieldProviderPicked, setFieldProviderPicked] = useState<string>(initialValues?.provider); // bugfix: Form.useWatch 在条件渲染下不生效，这里用单独的变量存放 Picker 组件选择的值
 
   const [nestedFormInst] = Form.useForm();
-  const nestedFormName = useAntdFormName({ form: nestedFormInst, name: "accessEditFormConfigForm" });
+  const nestedFormName = useAntdFormName({ form: nestedFormInst, name: "accessConfigForm" });
   const nestedFormEl = useMemo(() => {
     const nestedFormProps = {
       form: nestedFormInst,
@@ -158,6 +181,8 @@ const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className,
     switch (fieldProvider) {
       case ACCESS_PROVIDERS["1PANEL"]:
         return <AccessForm1PanelConfig {...nestedFormProps} />;
+      case ACCESS_PROVIDERS.ACMECA:
+        return <AccessFormACMECAConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.ACMEHTTPREQ:
         return <AccessFormACMEHttpReqConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.ALIYUN:
@@ -172,6 +197,8 @@ const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className,
         return <AccessFormBaishanConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.BAOTAPANEL:
         return <AccessFormBaotaPanelConfig {...nestedFormProps} />;
+      case ACCESS_PROVIDERS.BAOTAWAF:
+        return <AccessFormBaotaWAFConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.BUNNY:
         return <AccessFormBunnyConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.BYTEPLUS:
@@ -196,6 +223,12 @@ const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className,
         return <AccessFormDogeCloudConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.DYNV6:
         return <AccessFormDynv6Config {...nestedFormProps} />;
+      case ACCESS_PROVIDERS.EDGIO:
+        return <AccessFormEdgioConfig {...nestedFormProps} />;
+      case ACCESS_PROVIDERS.EMAIL:
+        return <AccessFormEmailConfig {...nestedFormProps} />;
+      case ACCESS_PROVIDERS.FLEXCDN:
+        return <AccessFormFlexCDNConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.GCORE:
         return <AccessFormGcoreConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.GNAME:
@@ -206,10 +239,6 @@ const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className,
         return <AccessFormGoEdgeConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.GOOGLETRUSTSERVICES:
         return <AccessFormGoogleTrustServicesConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.EDGIO:
-        return <AccessFormEdgioConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.EMAIL:
-        return <AccessFormEmailConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.HUAWEICLOUD:
         return <AccessFormHuaweiCloudConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.JDCLOUD:
@@ -218,6 +247,8 @@ const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className,
         return <AccessFormKubernetesConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.LARKBOT:
         return <AccessFormLarkBotConfig {...nestedFormProps} />;
+      case ACCESS_PROVIDERS.LECDN:
+        return <AccessFormLeCDNConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.MATTERMOST:
         return <AccessFormMattermostConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.NAMECHEAP:
@@ -226,6 +257,10 @@ const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className,
         return <AccessFormNameDotComConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.NAMESILO:
         return <AccessFormNameSiloConfig {...nestedFormProps} />;
+      case ACCESS_PROVIDERS.NETCUP:
+        return <AccessFormNetcupConfig {...nestedFormProps} />;
+      case ACCESS_PROVIDERS.NETLIFY:
+        return <AccessFormNetlifyConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.NS1:
         return <AccessFormNS1Config {...nestedFormProps} />;
       case ACCESS_PROVIDERS.PORKBUN:
@@ -238,12 +273,14 @@ const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className,
         return <AccessFormQiniuConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.RAINYUN:
         return <AccessFormRainYunConfig {...nestedFormProps} />;
+      case ACCESS_PROVIDERS.RATPANEL:
+        return <AccessFormRatPanelConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.SAFELINE:
         return <AccessFormSafeLineConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.SSH:
         return <AccessFormSSHConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.TELEGRAM:
-        return <AccessFormTelegramConfig {...nestedFormProps} />;
+      case ACCESS_PROVIDERS.TELEGRAMBOT:
+        return <AccessFormTelegramBotConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.SSLCOM:
         return <AccessFormSSLComConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.TENCENTCLOUD:
@@ -272,7 +309,13 @@ const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className,
       case ACCESS_PROVIDERS.ZEROSSL:
         return <AccessFormZeroSSLConfig {...nestedFormProps} />;
     }
-  }, [disabled, initialValues?.config, fieldProvider, nestedFormInst, nestedFormName]);
+  }, [usage, disabled, initialValues?.config, fieldProvider, nestedFormInst, nestedFormName]);
+
+  const handleProviderPick = (value: string) => {
+    setFieldProviderPicked(value);
+    formInst.setFieldValue("provider", value);
+    onValuesChange?.(formInst.getFieldsValue(true));
+  };
 
   const handleFormProviderChange = (name: string) => {
     if (name === nestedFormName) {
@@ -312,30 +355,32 @@ const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className,
     <Form.Provider onFormChange={handleFormProviderChange}>
       <div className={className} style={style}>
         <Form {...formProps} disabled={disabled} layout="vertical" scrollToFirstError onValuesChange={handleFormChange}>
-          <Form.Item name="name" label={t("access.form.name.label")} rules={[formRule]}>
-            <Input placeholder={t("access.form.name.placeholder")} />
-          </Form.Item>
+          <Show
+            when={!!fieldProvider || !!fieldProviderPicked}
+            fallback={
+              <AccessProviderPicker
+                autoFocus
+                filter={providerFilter}
+                placeholder={t("access.form.provider.search.placeholder")}
+                showOptionTags={usage == null || (usage === "both-dns-hosting" ? { [ACCESS_USAGES.DNS]: true, [ACCESS_USAGES.HOSTING]: true } : false)}
+                onSelect={handleProviderPick}
+              />
+            }
+          >
+            <Form.Item name="name" label={t("access.form.name.label")} rules={[formRule]}>
+              <Input placeholder={t("access.form.name.placeholder")} />
+            </Form.Item>
 
-          <Form.Item name="provider" label={providerLabel} rules={[formRule]} tooltip={providerTooltip}>
-            <AccessProviderSelect
-              filter={(record) => {
-                if (usage == null) return true;
-
-                switch (usage) {
-                  case "both-dns-hosting":
-                    return record.usages.includes(ACCESS_USAGES.DNS) || record.usages.includes(ACCESS_USAGES.HOSTING);
-                  case "ca-only":
-                    return record.usages.includes(ACCESS_USAGES.CA);
-                  case "notification-only":
-                    return record.usages.includes(ACCESS_USAGES.NOTIFICATION);
-                }
-              }}
-              disabled={scene !== "add"}
-              placeholder={providerPlaceholder}
-              showOptionTags={usage == null || (usage === "both-dns-hosting" ? { [ACCESS_USAGES.DNS]: true, [ACCESS_USAGES.HOSTING]: true } : false)}
-              showSearch={!disabled}
-            />
-          </Form.Item>
+            <Form.Item name="provider" label={providerLabel} rules={[formRule]} tooltip={providerTooltip}>
+              <AccessProviderSelect
+                filter={providerFilter}
+                disabled={scene !== "add"}
+                placeholder={providerPlaceholder}
+                showOptionTags={usage == null || (usage === "both-dns-hosting" ? { [ACCESS_USAGES.DNS]: true, [ACCESS_USAGES.HOSTING]: true } : false)}
+                showSearch={!disabled}
+              />
+            </Form.Item>
+          </Show>
         </Form>
 
         {nestedFormEl}

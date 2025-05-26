@@ -20,7 +20,7 @@ type DeployerConfig struct {
 	// 加速域名（支持泛域名）。
 	Domain string `json:"domain"`
 	// 证书 ID。
-	// 选填。
+	// 选填。零值时表示新建证书；否则表示更新证书。
 	CertificateId string `json:"certificateId,omitempty"`
 }
 
@@ -63,6 +63,7 @@ func (d *DeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPE
 		return nil, errors.New("config `domain` is required")
 	}
 
+	// 如果原证书 ID 为空，则新增证书；否则替换证书。
 	if d.config.CertificateId == "" {
 		// 新增证书
 		// REF: https://portal.baishancloud.com/track/document/downloadPdf/1441

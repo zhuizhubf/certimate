@@ -30,13 +30,16 @@ builds:
       - goos: darwin
         goarch: arm
 
+upx:
+  enable: true
+
 release:
   draft: true
 
 archives:
   - id: archive_noncgo
     builds: [build_noncgo]
-    format: zip
+    format: "zip"
     files:
       - CHANGELOG.md
       - LICENSE.md

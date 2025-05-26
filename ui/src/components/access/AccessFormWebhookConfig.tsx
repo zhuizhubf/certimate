@@ -4,6 +4,7 @@ import { Alert, Button, Dropdown, Form, type FormInstance, Input, Select, Switch
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
+import CodeInput from "@/components/CodeInput";
 import Show from "@/components/Show";
 import { type AccessConfigForWebhook } from "@/domain/access";
 
@@ -66,7 +67,6 @@ const AccessFormWebhookConfig = ({ form: formInst, formName, disabled, initialVa
         }
         return true;
       }, t("access.form.webhook_headers.errmsg.invalid")),
-    allowInsecureConnections: z.boolean().nullish(),
     defaultDataForDeployment: z
       .string()
       .nullish()
@@ -95,18 +95,19 @@ const AccessFormWebhookConfig = ({ form: formInst, formName, disabled, initialVa
           return false;
         }
       }, t("access.form.webhook_default_data.errmsg.json_invalid")),
+    allowInsecureConnections: z.boolean().nullish(),
   });
   const formRule = createSchemaFieldRule(formSchema);
 
-  const handleWebhookHeadersBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
-    let value = e.target.value;
+  const handleWebhookHeadersBlur = () => {
+    let value = formInst.getFieldValue("headers");
     value = value.trim();
     value = value.replace(/(?<!\r)\n/g, "\r\n");
     formInst.setFieldValue("headers", value);
   };
 
-  const handleWebhookDataForDeploymentBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
+  const handleWebhookDataForDeploymentBlur = () => {
+    const value = formInst.getFieldValue("defaultDataForDeployment");
     try {
       const json = JSON.stringify(JSON.parse(value), null, 2);
       formInst.setFieldValue("defaultDataForDeployment", json);
@@ -115,8 +116,8 @@ const AccessFormWebhookConfig = ({ form: formInst, formName, disabled, initialVa
     }
   };
 
-  const handleWebhookDataForNotificationBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
+  const handleWebhookDataForNotificationBlur = () => {
+    const value = formInst.getFieldValue("defaultDataForNotification");
     try {
       const json = JSON.stringify(JSON.parse(value), null, 2);
       formInst.setFieldValue("defaultDataForNotification", json);
@@ -141,8 +142,7 @@ const AccessFormWebhookConfig = ({ form: formInst, formName, disabled, initialVa
             {
               title: "${SUBJECT}",
               body: "${MESSAGE}",
-              group: "<your-bark-group>",
-              device_keys: "<your-bark-device-key>",
+              device_key: "<your-bark-device-key>",
             },
             null,
             2
@@ -279,11 +279,17 @@ const AccessFormWebhookConfig = ({ form: formInst, formName, disabled, initialVa
         rules={[formRule]}
         tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.webhook_headers.tooltip") }}></span>}
       >
-        <Input.TextArea autoSize={{ minRows: 3, maxRows: 5 }} placeholder={t("access.form.webhook_headers.placeholder")} onBlur={handleWebhookHeadersBlur} />
+        <CodeInput
+          height="auto"
+          minHeight="64px"
+          maxHeight="256px"
+          placeholder={t("access.form.webhook_headers.placeholder")}
+          onBlur={handleWebhookHeadersBlur}
+        />
       </Form.Item>
 
       <Show when={!usage || usage === "deployment"}>
-        <Form.Item className="mb-0">
+        <Form.Item className="mb-0" htmlFor="null">
           <label className="mb-1 block">
             <div className="flex w-full items-center justify-between gap-4">
               <div className="max-w-full grow truncate">
@@ -297,9 +303,11 @@ const AccessFormWebhookConfig = ({ form: formInst, formName, disabled, initialVa
             </div>
           </label>
           <Form.Item name="defaultDataForDeployment" rules={[formRule]}>
-            <Input.TextArea
-              allowClear
-              autoSize={{ minRows: 3, maxRows: 10 }}
+            <CodeInput
+              height="auto"
+              minHeight="64px"
+              maxHeight="256px"
+              language="json"
               placeholder={t("access.form.webhook_default_data_for_deployment.placeholder")}
               onBlur={handleWebhookDataForDeploymentBlur}
             />
@@ -312,7 +320,7 @@ const AccessFormWebhookConfig = ({ form: formInst, formName, disabled, initialVa
       </Show>
 
       <Show when={!usage || usage === "notification"}>
-        <Form.Item className="mb-0">
+        <Form.Item className="mb-0" htmlFor="null">
           <label className="mb-1 block">
             <div className="flex w-full items-center justify-between gap-4">
               <div className="max-w-full grow truncate">
@@ -338,9 +346,11 @@ const AccessFormWebhookConfig = ({ form: formInst, formName, disabled, initialVa
             </div>
           </label>
           <Form.Item name="defaultDataForNotification" rules={[formRule]}>
-            <Input.TextArea
-              allowClear
-              autoSize={{ minRows: 3, maxRows: 10 }}
+            <CodeInput
+              height="auto"
+              minHeight="64px"
+              maxHeight="256px"
+              language="json"
               placeholder={t("access.form.webhook_default_data_for_notification.placeholder")}
               onBlur={handleWebhookDataForNotificationBlur}
             />

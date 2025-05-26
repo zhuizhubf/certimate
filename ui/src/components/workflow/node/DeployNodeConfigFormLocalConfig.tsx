@@ -1,23 +1,26 @@
 import { useTranslation } from "react-i18next";
 import { DownOutlined as DownOutlinedIcon } from "@ant-design/icons";
-import { Button, Dropdown, Form, type FormInstance, Input, Select } from "antd";
+import { Alert, Button, Dropdown, Form, type FormInstance, Input, Select } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
+import CodeInput from "@/components/CodeInput";
 import Show from "@/components/Show";
 import { CERTIFICATE_FORMATS } from "@/domain/certificate";
 
 type DeployNodeConfigFormLocalConfigFieldValues = Nullish<{
   format: string;
   certPath: string;
-  keyPath?: string | null;
-  pfxPassword?: string | null;
-  jksAlias?: string | null;
-  jksKeypass?: string | null;
-  jksStorepass?: string | null;
-  shellEnv?: string | null;
-  preCommand?: string | null;
-  postCommand?: string | null;
+  certPathForServerOnly?: string;
+  certPathForIntermediaOnly?: string;
+  keyPath?: string;
+  pfxPassword?: string;
+  jksAlias?: string;
+  jksKeypass?: string;
+  jksStorepass?: string;
+  shellEnv?: string;
+  preCommand?: string;
+  postCommand?: string;
 }>;
 
 export type DeployNodeConfigFormLocalConfigProps = {
@@ -49,6 +52,8 @@ export const initPresetScript = (
   key: "sh_backup_files" | "ps_backup_files" | "sh_reload_nginx" | "ps_binding_iis" | "ps_binding_netsh" | "ps_binding_rdp",
   params?: {
     certPath?: string;
+    certPathForServerOnly?: string;
+    certPathForIntermediaOnly?: string;
     keyPath?: string;
     pfxPassword?: string;
     jksAlias?: string;
@@ -74,18 +79,21 @@ if (Test-Path -Path "${params?.keyPath || "<your-key-path>"}" -PathType Leaf) {
       `.trim();
 
     case "sh_reload_nginx":
-      return `sudo service nginx reload`;
+      return `# *** 需要 root 权限 ***
+
+sudo service nginx reload
+      `.trim();
 
     case "ps_binding_iis":
-      return `# 需要管理员权限
+      return `# *** 需要管理员权限 ***
+
 # 请将以下变量替换为实际值
-$pfxPath = "${params?.certPath || "<your-cert-path>"}" # PFX 文件路径
-$pfxPassword = "${params?.pfxPassword || "<your-pfx-password>"}" # PFX 密码
+$pfxPath = "${params?.certPath || "<your-cert-path>"}" # PFX 文件路径（与表单中保持一致）
+$pfxPassword = "${params?.pfxPassword || "<your-pfx-password>"}" # PFX 密码（与表单中保持一致）
 $siteName = "<your-site-name>" # IIS 网站名称
 $domain = "<your-domain-name>" # 域名
 $ipaddr = "<your-binding-ip>"  # 绑定 IP，“*”表示所有 IP 绑定
 $port = "<your-binding-port>"  # 绑定端口
-
 
 # 导入证书到本地计算机的个人存储区
 $cert = Import-PfxCertificate -FilePath "$pfxPath" -CertStoreLocation Cert:\\LocalMachine\\My -Password (ConvertTo-SecureString -String "$pfxPassword" -AsPlainText -Force) -Exportable
@@ -108,16 +116,16 @@ Remove-Item -Path "$pfxPath" -Force
       `.trim();
 
     case "ps_binding_netsh":
-      return `# 需要管理员权限
+      return `# *** 需要管理员权限 ***
+
 # 请将以下变量替换为实际值
-$pfxPath = "${params?.certPath || "<your-cert-path>"}" # PFX 文件路径
-$pfxPassword = "${params?.pfxPassword || "<your-pfx-password>"}" # PFX 密码
-$ipaddr = "<your-binding-ip>"  # 绑定 IP，“0.0.0.0”表示所有 IP 绑定，可填入域名。
+$pfxPath = "${params?.certPath || "<your-cert-path>"}" # PFX 文件路径（与表单中保持一致）
+$pfxPassword = "${params?.pfxPassword || "<your-pfx-password>"}" # PFX 密码（与表单中保持一致）
+$ipaddr = "<your-binding-ip>"  # 绑定 IP，“0.0.0.0”表示所有 IP 绑定，可填入域名
 $port = "<your-binding-port>"  # 绑定端口
 
-$addr = $ipaddr + ":" + $port
-
 # 导入证书到本地计算机的个人存储区
+$addr = $ipaddr + ":" + $port
 $cert = Import-PfxCertificate -FilePath "$pfxPath" -CertStoreLocation Cert:\\LocalMachine\\My -Password (ConvertTo-SecureString -String "$pfxPassword" -AsPlainText -Force) -Exportable
 # 获取 Thumbprint
 $thumbprint = $cert.Thumbprint
@@ -131,10 +139,11 @@ Remove-Item -Path "$pfxPath" -Force
       `.trim();
 
     case "ps_binding_rdp":
-      return `# 需要管理员权限
+      return `# *** 需要管理员权限 ***
+
 # 请将以下变量替换为实际值
-$pfxPath = "${params?.certPath || "<your-cert-path>"}" # PFX 文件路径
-$pfxPassword = "${params?.pfxPassword || "<your-pfx-password>"}" # PFX 密码
+$pfxPath = "${params?.certPath || "<your-cert-path>"}" # PFX 文件路径（与表单中保持一致）
+$pfxPassword = "${params?.pfxPassword || "<your-pfx-password>"}" # PFX 密码（与表单中保持一致）
 
 # 导入证书到本地计算机的个人存储区
 $cert = Import-PfxCertificate -FilePath "$pfxPath" -CertStoreLocation Cert:\\LocalMachine\\My -Password (ConvertTo-SecureString -String "$pfxPassword" -AsPlainText -Force) -Exportable
@@ -159,6 +168,16 @@ const DeployNodeConfigFormLocalConfig = ({ form: formInst, formName, disabled, i
       .min(1, t("workflow_node.deploy.form.local_cert_path.tooltip"))
       .max(256, t("common.errmsg.string_max", { max: 256 }))
       .trim(),
+    certPathForServerOnly: z
+      .string()
+      .max(256, t("common.errmsg.string_max", { max: 256 }))
+      .trim()
+      .nullish(),
+    certPathForIntermediaOnly: z
+      .string()
+      .max(256, t("common.errmsg.string_max", { max: 256 }))
+      .trim()
+      .nullish(),
     keyPath: z
       .string()
       .max(256, t("common.errmsg.string_max", { max: 256 }))
@@ -289,6 +308,10 @@ const DeployNodeConfigFormLocalConfig = ({ form: formInst, formName, disabled, i
       name={formName}
       onValuesChange={handleFormChange}
     >
+      <Form.Item>
+        <Alert type="info" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.local.guide") }}></span>} />
+      </Form.Item>
+
       <Form.Item name="format" label={t("workflow_node.deploy.form.local_format.label")} rules={[formRule]}>
         <Select placeholder={t("workflow_node.deploy.form.local_format.placeholder")} onSelect={handleFormatSelect}>
           <Select.Option key={FORMAT_PEM} value={FORMAT_PEM}>
@@ -320,6 +343,24 @@ const DeployNodeConfigFormLocalConfig = ({ form: formInst, formName, disabled, i
           tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.local_key_path.tooltip") }}></span>}
         >
           <Input placeholder={t("workflow_node.deploy.form.local_key_path.placeholder")} />
+        </Form.Item>
+
+        <Form.Item
+          name="certPathForServerOnly"
+          label={t("workflow_node.deploy.form.local_servercert_path.label")}
+          rules={[formRule]}
+          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.local_servercert_path.tooltip") }}></span>}
+        >
+          <Input allowClear placeholder={t("workflow_node.deploy.form.local_servercert_path.placeholder")} />
+        </Form.Item>
+
+        <Form.Item
+          name="certPathForIntermediaOnly"
+          label={t("workflow_node.deploy.form.local_intermediacert_path.label")}
+          rules={[formRule]}
+          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.local_intermediacert_path.tooltip") }}></span>}
+        >
+          <Input allowClear placeholder={t("workflow_node.deploy.form.local_intermediacert_path.placeholder")} />
         </Form.Item>
       </Show>
 
@@ -377,7 +418,7 @@ const DeployNodeConfigFormLocalConfig = ({ form: formInst, formName, disabled, i
         </Select>
       </Form.Item>
 
-      <Form.Item className="mb-0">
+      <Form.Item className="mb-0" htmlFor="null">
         <label className="mb-1 block">
           <div className="flex w-full items-center justify-between gap-4">
             <div className="max-w-full grow truncate">
@@ -403,11 +444,17 @@ const DeployNodeConfigFormLocalConfig = ({ form: formInst, formName, disabled, i
           </div>
         </label>
         <Form.Item name="preCommand" rules={[formRule]}>
-          <Input.TextArea autoSize={{ minRows: 1, maxRows: 5 }} placeholder={t("workflow_node.deploy.form.local_pre_command.placeholder")} />
+          <CodeInput
+            height="auto"
+            minHeight="64px"
+            maxHeight="256px"
+            language={["shell", "powershell"]}
+            placeholder={t("workflow_node.deploy.form.local_pre_command.placeholder")}
+          />
         </Form.Item>
       </Form.Item>
 
-      <Form.Item className="mb-0">
+      <Form.Item className="mb-0" htmlFor="null">
         <label className="mb-1 block">
           <div className="flex w-full items-center justify-between gap-4">
             <div className="max-w-full grow truncate">
@@ -433,7 +480,13 @@ const DeployNodeConfigFormLocalConfig = ({ form: formInst, formName, disabled, i
           </div>
         </label>
         <Form.Item name="postCommand" rules={[formRule]}>
-          <Input.TextArea autoSize={{ minRows: 1, maxRows: 5 }} placeholder={t("workflow_node.deploy.form.local_post_command.placeholder")} />
+          <CodeInput
+            height="auto"
+            minHeight="64px"
+            maxHeight="256px"
+            language={["shell", "powershell"]}
+            placeholder={t("workflow_node.deploy.form.local_post_command.placeholder")}
+          />
         </Form.Item>
       </Form.Item>
     </Form>

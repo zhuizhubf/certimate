@@ -13,11 +13,13 @@ import {
   SettingOutlined as SettingOutlinedIcon,
   SunOutlined as SunOutlinedIcon,
 } from "@ant-design/icons";
-import { Button, type ButtonProps, Drawer, Dropdown, Layout, Menu, type MenuProps, Tooltip, theme } from "antd";
+import { Alert, Button, type ButtonProps, Drawer, Dropdown, Layout, Menu, type MenuProps, Tooltip, theme } from "antd";
 
+import Show from "@/components/Show";
 import Version from "@/components/Version";
 import { useBrowserTheme, useTriggerElement } from "@/hooks";
 import { getAuthStore } from "@/repository/admin";
+import { isBrowserHappy } from "@/utils/browser";
 
 const ConsoleLayout = () => {
   const navigate = useNavigate();
@@ -29,10 +31,6 @@ const ConsoleLayout = () => {
   const handleLogoutClick = () => {
     auth.clear();
     navigate("/login");
-  };
-
-  const handleSettingsClick = () => {
-    navigate("/settings/account");
   };
 
   const auth = getAuthStore();
@@ -54,6 +52,10 @@ const ConsoleLayout = () => {
       </Layout.Sider>
 
       <Layout className="flex flex-col overflow-hidden pl-[256px] max-md:pl-0">
+        <Show when={!isBrowserHappy()}>
+          <Alert message={t("common.text.happy_browser")} type="warning" showIcon closable />
+        </Show>
+
         <Layout.Header className="p-0 shadow-sm" style={{ background: themeToken.colorBgContainer }}>
           <div className="flex size-full items-center justify-between overflow-hidden px-4">
             <div className="flex items-center gap-4">
@@ -65,9 +67,6 @@ const ConsoleLayout = () => {
               </Tooltip>
               <Tooltip title={t("common.menu.locale")} mouseEnterDelay={2}>
                 <LocaleToggleButton size="large" />
-              </Tooltip>
-              <Tooltip title={t("common.menu.settings")} mouseEnterDelay={2}>
-                <Button icon={<SettingOutlinedIcon />} size="large" onClick={handleSettingsClick} />
               </Tooltip>
               <Tooltip title={t("common.menu.logout")} mouseEnterDelay={2}>
                 <Button danger icon={<LogoutOutlinedIcon />} size="large" onClick={handleLogoutClick} />
@@ -94,11 +93,13 @@ const SiderMenu = memo(({ onSelect }: { onSelect?: (key: string) => void }) => {
   const MENU_KEY_WORKFLOWS = "/workflows";
   const MENU_KEY_CERTIFICATES = "/certificates";
   const MENU_KEY_ACCESSES = "/accesses";
+  const MENU_KEY_SETTINGS = "/settings";
   const menuItems: Required<MenuProps>["items"] = [
     [MENU_KEY_HOME, <HomeOutlinedIcon />, t("dashboard.page.title")],
     [MENU_KEY_WORKFLOWS, <NodeIndexOutlinedIcon />, t("workflow.page.title")],
     [MENU_KEY_CERTIFICATES, <SafetyOutlinedIcon />, t("certificate.page.title")],
     [MENU_KEY_ACCESSES, <CloudServerOutlinedIcon />, t("access.page.title")],
+    [MENU_KEY_SETTINGS, <SettingOutlinedIcon />, t("settings.page.title")],
   ].map(([key, icon, label]) => {
     return {
       key: key as string,
@@ -167,7 +168,7 @@ const SiderMenuDrawer = memo(({ trigger }: { trigger: React.ReactNode }) => {
 
       <Drawer
         closable={false}
-        destroyOnClose
+        destroyOnHidden
         open={siderOpen}
         placement="left"
         styles={{

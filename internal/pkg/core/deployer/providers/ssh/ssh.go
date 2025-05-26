@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net"
 	"os"
 	"path/filepath"
 
@@ -15,6 +16,23 @@ import (
 	"github.com/usual2970/certimate/internal/pkg/core/deployer"
 	certutil "github.com/usual2970/certimate/internal/pkg/utils/cert"
 )
+
+type JumpServerConfig struct {
+	// SSH 主机。
+	// 零值时默认为 "localhost"。
+	SshHost string `json:"sshHost,omitempty"`
+	// SSH 端口。
+	// 零值时默认为 22。
+	SshPort int32 `json:"sshPort,omitempty"`
+	// SSH 登录用户名。
+	SshUsername string `json:"sshUsername,omitempty"`
+	// SSH 登录密码。
+	SshPassword string `json:"sshPassword,omitempty"`
+	// SSH 登录私钥。
+	SshKey string `json:"sshKey,omitempty"`
+	// SSH 登录私钥口令。
+	SshKeyPassphrase string `json:"sshKeyPassphrase,omitempty"`
+}
 
 type DeployerConfig struct {
 	// SSH 主机。
@@ -31,6 +49,8 @@ type DeployerConfig struct {
 	SshKey string `json:"sshKey,omitempty"`
 	// SSH 登录私钥口令。
 	SshKeyPassphrase string `json:"sshKeyPassphrase,omitempty"`
+	// 跳板机配置数组。
+	JumpServers []JumpServerConfig `json:"jumpServers,omitempty"`
 	// 是否回退使用 SCP。
 	UseSCP bool `json:"useSCP,omitempty"`
 	// 前置命令。
@@ -41,6 +61,12 @@ type DeployerConfig struct {
 	OutputFormat OutputFormatType `json:"outputFormat,omitempty"`
 	// 输出证书文件路径。
 	OutputCertPath string `json:"outputCertPath,omitempty"`
+	// 输出服务器证书文件路径。
+	// 选填。
+	OutputServerCertPath string `json:"outputServerCertPath,omitempty"`
+	// 输出中间证书文件路径。
+	// 选填。
+	OutputIntermediaCertPath string `json:"outputIntermediaCertPath,omitempty"`
 	// 输出私钥文件路径。
 	OutputKeyPath string `json:"outputKeyPath,omitempty"`
 	// PFX 导出密码。
@@ -85,8 +111,67 @@ func (d *DeployerProvider) WithLogger(logger *slog.Logger) deployer.Deployer {
 }
 
 func (d *DeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPEM string) (*deployer.DeployResult, error) {
-	// 连接
+	// 提取服务器证书和中间证书
+	serverCertPEM, intermediaCertPEM, err := certutil.ExtractCertificatesFromPEM(certPEM)
+	if err != nil {
+		return nil, fmt.Errorf("failed to extract certs: %w", err)
+	}
+
+	var targetConn net.Conn
+
+	// 连接到跳板机
+	if len(d.config.JumpServers) > 0 {
+		var jumpClient *ssh.Client
+		for i, jumpServerConf := range d.config.JumpServers {
+			d.logger.Info(fmt.Sprintf("connecting to jump server [%d]", i+1), slog.String("host", jumpServerConf.SshHost))
+
+			var jumpConn net.Conn
+			// 第一个连接是主机发起，后续通过跳板机发起
+			if jumpClient == nil {
+				jumpConn, err = net.Dial("tcp", fmt.Sprintf("%s:%d", jumpServerConf.SshHost, jumpServerConf.SshPort))
+			} else {
+				jumpConn, err = jumpClient.DialContext(ctx, "tcp", fmt.Sprintf("%s:%d", jumpServerConf.SshHost, jumpServerConf.SshPort))
+			}
+			if err != nil {
+				return nil, fmt.Errorf("failed to connect to jump server [%d]: %w", i+1, err)
+			}
+			defer jumpConn.Close()
+
+			newClient, err := createSshClient(
+				jumpConn,
+				jumpServerConf.SshHost,
+				jumpServerConf.SshPort,
+				jumpServerConf.SshUsername,
+				jumpServerConf.SshPassword,
+				jumpServerConf.SshKey,
+				jumpServerConf.SshKeyPassphrase,
+			)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create jump server ssh client[%d]: %w", i+1, err)
+			}
+			defer newClient.Close()
+
+			jumpClient = newClient
+			d.logger.Info(fmt.Sprintf("jump server connected [%d]", i+1), slog.String("host", jumpServerConf.SshHost))
+		}
+
+		// 通过跳板机发起 TCP 连接到目标服务器
+		targetConn, err = jumpClient.DialContext(ctx, "tcp", fmt.Sprintf("%s:%d", d.config.SshHost, d.config.SshPort))
+		if err != nil {
+			return nil, fmt.Errorf("failed to connect to target server: %w", err)
+		}
+	} else {
+		// 直接发起 TCP 连接到目标服务器
+		targetConn, err = net.Dial("tcp", fmt.Sprintf("%s:%d", d.config.SshHost, d.config.SshPort))
+		if err != nil {
+			return nil, fmt.Errorf("failed to connect to target server: %w", err)
+		}
+	}
+	defer targetConn.Close()
+
+	// 通过已有的连接创建目标服务器 SSH 客户端
 	client, err := createSshClient(
+		targetConn,
 		d.config.SshHost,
 		d.config.SshPort,
 		d.config.SshUsername,
@@ -117,6 +202,20 @@ func (d *DeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPE
 			return nil, fmt.Errorf("failed to upload certificate file: %w", err)
 		}
 		d.logger.Info("ssl certificate file uploaded", slog.String("path", d.config.OutputCertPath))
+
+		if d.config.OutputServerCertPath != "" {
+			if err := writeFileString(client, d.config.UseSCP, d.config.OutputServerCertPath, serverCertPEM); err != nil {
+				return nil, fmt.Errorf("failed to save server certificate file: %w", err)
+			}
+			d.logger.Info("ssl server certificate file uploaded", slog.String("path", d.config.OutputServerCertPath))
+		}
+
+		if d.config.OutputIntermediaCertPath != "" {
+			if err := writeFileString(client, d.config.UseSCP, d.config.OutputIntermediaCertPath, intermediaCertPEM); err != nil {
+				return nil, fmt.Errorf("failed to save intermedia certificate file: %w", err)
+			}
+			d.logger.Info("ssl intermedia certificate file uploaded", slog.String("path", d.config.OutputIntermediaCertPath))
+		}
 
 		if err := writeFileString(client, d.config.UseSCP, d.config.OutputKeyPath, privkeyPEM); err != nil {
 			return nil, fmt.Errorf("failed to upload private key file: %w", err)
@@ -163,7 +262,7 @@ func (d *DeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPE
 	return &deployer.DeployResult{}, nil
 }
 
-func createSshClient(host string, port int32, username string, password string, key string, keyPassphrase string) (*ssh.Client, error) {
+func createSshClient(conn net.Conn, host string, port int32, username string, password string, key string, keyPassphrase string) (*ssh.Client, error) {
 	if host == "" {
 		host = "localhost"
 	}
@@ -191,11 +290,16 @@ func createSshClient(host string, port int32, username string, password string, 
 		authMethod = ssh.Password(password)
 	}
 
-	return ssh.Dial("tcp", fmt.Sprintf("%s:%d", host, port), &ssh.ClientConfig{
+	sshConn, chans, reqs, err := ssh.NewClientConn(conn, fmt.Sprintf("%s:%d", host, port), &ssh.ClientConfig{
 		User:            username,
 		Auth:            []ssh.AuthMethod{authMethod},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	return ssh.NewClient(sshConn, chans, reqs), nil
 }
 
 func execSshCommand(sshCli *ssh.Client, command string) (string, string, error) {

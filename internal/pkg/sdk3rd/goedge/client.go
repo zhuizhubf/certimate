@@ -13,8 +13,7 @@ import (
 )
 
 type Client struct {
-	apiHost     string
-	apiUserType string
+	apiRole     string
 	accessKeyId string
 	accessKey   string
 
@@ -25,16 +24,23 @@ type Client struct {
 	client *resty.Client
 }
 
-func NewClient(apiHost, apiUserType, accessKeyId, accessKey string) *Client {
-	client := resty.New()
-
-	return &Client{
-		apiHost:     strings.TrimRight(apiHost, "/"),
-		apiUserType: apiUserType,
+func NewClient(apiHost, apiRole, accessKeyId, accessKey string) *Client {
+	client := &Client{
+		apiRole:     apiRole,
 		accessKeyId: accessKeyId,
 		accessKey:   accessKey,
-		client:      client,
 	}
+	client.client = resty.New().
+		SetBaseURL(strings.TrimRight(apiHost, "/")).
+		SetPreRequestHook(func(c *resty.Client, req *http.Request) error {
+			if client.accessToken != "" {
+				req.Header.Set("X-Edge-Access-Token", client.accessToken)
+			}
+
+			return nil
+		})
+
+	return client
 }
 
 func (c *Client) WithTimeout(timeout time.Duration) *Client {
@@ -48,9 +54,7 @@ func (c *Client) WithTLSConfig(config *tls.Config) *Client {
 }
 
 func (c *Client) sendRequest(method string, path string, params interface{}) (*resty.Response, error) {
-	req := c.client.R().SetBasicAuth(c.accessKeyId, c.accessKey)
-	req.Method = method
-	req.URL = c.apiHost + path
+	req := c.client.R()
 	if strings.EqualFold(method, http.MethodGet) {
 		qs := make(map[string]string)
 		if params != nil {
@@ -64,21 +68,16 @@ func (c *Client) sendRequest(method string, path string, params interface{}) (*r
 			}
 		}
 
-		req = req.
-			SetQueryParams(qs).
-			SetHeader("X-Edge-Access-Token", c.accessToken)
+		req = req.SetQueryParams(qs)
 	} else {
-		req = req.
-			SetHeader("Content-Type", "application/json").
-			SetHeader("X-Edge-Access-Token", c.accessToken).
-			SetBody(params)
+		req = req.SetHeader("Content-Type", "application/json").SetBody(params)
 	}
 
-	resp, err := req.Send()
+	resp, err := req.Execute(method, path)
 	if err != nil {
 		return resp, fmt.Errorf("goedge api error: failed to send request: %w", err)
 	} else if resp.IsError() {
-		return resp, fmt.Errorf("goedge api error: unexpected status code: %d, resp: %s", resp.StatusCode(), resp.Body())
+		return resp, fmt.Errorf("goedge api error: unexpected status code: %d, resp: %s", resp.StatusCode(), resp.String())
 	}
 
 	return resp, nil
@@ -94,9 +93,9 @@ func (c *Client) sendRequestWithResult(method string, path string, params interf
 	}
 
 	if err := json.Unmarshal(resp.Body(), &result); err != nil {
-		return fmt.Errorf("goedge api error: failed to parse response: %w", err)
+		return fmt.Errorf("goedge api error: failed to unmarshal response: %w", err)
 	} else if errcode := result.GetCode(); errcode != 200 {
-		return fmt.Errorf("goedge api error: %d - %s", errcode, result.GetMessage())
+		return fmt.Errorf("goedge api error: code='%d', message='%s'", errcode, result.GetMessage())
 	}
 
 	return nil

@@ -95,7 +95,7 @@ const CertificateList = () => {
         return (
           <div style={{ padding: 0 }}>
             <Menu items={items} selectable={false} />
-            <Divider style={{ margin: 0 }} />
+            <Divider className="my-0" />
             <Space className="w-full justify-end" style={{ padding: themeToken.paddingSM }}>
               <Button size="small" disabled={!filters.state} onClick={handleResetClick}>
                 {t("common.button.reset")}
@@ -126,11 +126,11 @@ const CertificateList = () => {
       },
     },
     {
-      key: "issuer",
+      key: "brand",
       title: t("certificate.props.brand"),
       render: (_, record) => (
         <Space className="max-w-full" direction="vertical" size={4}>
-          <Typography.Text>{record.issuer}</Typography.Text>
+          <Typography.Text>{record.issuerOrg}</Typography.Text>
           <Typography.Text>{record.keyAlgorithm}</Typography.Text>
         </Space>
       ),

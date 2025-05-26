@@ -17,8 +17,15 @@ type Access struct {
 
 type AccessConfigFor1Panel struct {
 	ApiUrl                   string `json:"apiUrl"`
+	ApiVersion               string `json:"apiVersion"`
 	ApiKey                   string `json:"apiKey"`
 	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
+}
+
+type AccessConfigForACMECA struct {
+	Endpoint   string `json:"endpoint"`
+	EabKid     string `json:"eabKid,omitempty"`
+	EabHmacKey string `json:"eabHmacKey,omitempty"`
 }
 
 type AccessConfigForACMEHttpReq struct {
@@ -55,6 +62,12 @@ type AccessConfigForBaishan struct {
 }
 
 type AccessConfigForBaotaPanel struct {
+	ApiUrl                   string `json:"apiUrl"`
+	ApiKey                   string `json:"apiKey"`
+	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
+}
+
+type AccessConfigForBaotaWAF struct {
 	ApiUrl                   string `json:"apiUrl"`
 	ApiKey                   string `json:"apiKey"`
 	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
@@ -133,6 +146,14 @@ type AccessConfigForEmail struct {
 	DefaultReceiverAddress string `json:"defaultReceiverAddress,omitempty"`
 }
 
+type AccessConfigForFlexCDN struct {
+	ApiUrl                   string `json:"apiUrl"`
+	ApiRole                  string `json:"apiRole"`
+	AccessKeyId              string `json:"accessKeyId"`
+	AccessKey                string `json:"accessKey"`
+	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
+}
+
 type AccessConfigForGcore struct {
 	ApiToken string `json:"apiToken"`
 }
@@ -149,6 +170,7 @@ type AccessConfigForGoDaddy struct {
 
 type AccessConfigForGoEdge struct {
 	ApiUrl                   string `json:"apiUrl"`
+	ApiRole                  string `json:"apiRole"`
 	AccessKeyId              string `json:"accessKeyId"`
 	AccessKey                string `json:"accessKey"`
 	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
@@ -177,6 +199,15 @@ type AccessConfigForLarkBot struct {
 	WebhookUrl string `json:"webhookUrl"`
 }
 
+type AccessConfigForLeCDN struct {
+	ApiUrl                   string `json:"apiUrl"`
+	ApiVersion               string `json:"apiVersion"`
+	ApiRole                  string `json:"apiRole"`
+	Username                 string `json:"username"`
+	Password                 string `json:"password"`
+	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
+}
+
 type AccessConfigForMattermost struct {
 	ServerUrl        string `json:"serverUrl"`
 	Username         string `json:"username"`
@@ -196,6 +227,16 @@ type AccessConfigForNameDotCom struct {
 
 type AccessConfigForNameSilo struct {
 	ApiKey string `json:"apiKey"`
+}
+
+type AccessConfigForNetcup struct {
+	CustomerNumber string `json:"customerNumber"`
+	ApiKey         string `json:"apiKey"`
+	ApiPassword    string `json:"apiPassword"`
+}
+
+type AccessConfigForNetlify struct {
+	ApiToken string `json:"apiToken"`
 }
 
 type AccessConfigForNS1 struct {
@@ -229,6 +270,13 @@ type AccessConfigForRainYun struct {
 	ApiKey string `json:"apiKey"`
 }
 
+type AccessConfigForRatPanel struct {
+	ApiUrl                   string `json:"apiUrl"`
+	AccessTokenId            int32  `json:"accessTokenId"`
+	AccessToken              string `json:"accessToken"`
+	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
+}
+
 type AccessConfigForSafeLine struct {
 	ApiUrl                   string `json:"apiUrl"`
 	ApiToken                 string `json:"apiToken"`
@@ -242,6 +290,14 @@ type AccessConfigForSSH struct {
 	Password      string `json:"password,omitempty"`
 	Key           string `json:"key,omitempty"`
 	KeyPassphrase string `json:"keyPassphrase,omitempty"`
+	JumpServers   []struct {
+		Host          string `json:"host"`
+		Port          int32  `json:"port"`
+		Username      string `json:"username"`
+		Password      string `json:"password,omitempty"`
+		Key           string `json:"key,omitempty"`
+		KeyPassphrase string `json:"keyPassphrase,omitempty"`
+	} `json:"jumpServers,omitempty"`
 }
 
 type AccessConfigForSSLCom struct {
@@ -249,7 +305,7 @@ type AccessConfigForSSLCom struct {
 	EabHmacKey string `json:"eabHmacKey"`
 }
 
-type AccessConfigForTelegram struct {
+type AccessConfigForTelegramBot struct {
 	BotToken      string `json:"botToken"`
 	DefaultChatId int64  `json:"defaultChatId,omitempty"`
 }

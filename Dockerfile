@@ -8,12 +8,13 @@ RUN \
 
 
 
-FROM golang:1.23-alpine AS builder
+FROM golang:1.24-alpine AS builder
 WORKDIR /app
 COPY ../. /app/
 RUN rm -rf /app/ui/dist
 COPY --from=webui-builder /app/ui/dist /app/ui/dist
-RUN go build -o certimate
+ENV CGO_ENABLED=0
+RUN go build -ldflags="-s -w" -o certimate
 
 
 
