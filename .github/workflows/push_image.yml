@@ -18,6 +18,11 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+      - name: daemon
+        run: |
+          mkdir -p /etc/docker
+          touch /etc/docker/daemon.json
+          
       - name: Checkout code
         uses: actions/checkout@v4
         
