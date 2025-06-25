@@ -113,6 +113,7 @@ const ApplyNodeConfigForm = forwardRef<ApplyNodeConfigFormInstance, ApplyNodeCon
         (v) => (v == null || v === "" ? undefined : Number(v)),
         z.number().int(t("workflow_node.apply.form.dns_ttl.placeholder")).gte(1, t("workflow_node.apply.form.dns_ttl.placeholder")).nullish()
       ),
+      acmeProfile: z.string().nullish(),
       disableFollowCNAME: z.boolean().nullish(),
       disableARI: z.boolean().nullish(),
       skipBeforeExpiryDays: z.preprocess(
@@ -452,6 +453,20 @@ const ApplyNodeConfigForm = forwardRef<ApplyNodeConfigFormInstance, ApplyNodeCon
                 value: e,
               }))}
               placeholder={t("workflow_node.apply.form.key_algorithm.placeholder")}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="acmeProfile"
+            label={t("workflow_node.apply.form.acme_profile.label")}
+            rules={[formRule]}
+            tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.apply.form.acme_profile.tooltip") }}></span>}
+          >
+            <AutoComplete
+              allowClear
+              options={["classic", "tlsserver", "shortlived"].map((value) => ({ value }))}
+              placeholder={t("workflow_node.apply.form.acme_profile.placeholder")}
+              filterOption={(inputValue, option) => option!.value.toLowerCase().includes(inputValue.toLowerCase())}
             />
           </Form.Item>
         </Form>
