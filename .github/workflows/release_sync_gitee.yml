@@ -1,8 +1,8 @@
 name: Release Sync to Gitee
 
 on:
-  release:
-    types: [published, unpublished, deleted]
+  # release:
+  #   types: [published, unpublished, deleted]
   workflow_dispatch:
 
 jobs:
