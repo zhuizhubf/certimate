@@ -179,7 +179,7 @@ def create_gitee_release(name, tag, body, prerelease, gh_assets):
             download_ts = ts
             logging.info(f"Downloading {download_url} >>> {pct}%")
 
-        # request.urlretrieve(download_url, download_path, _hook)
+        request.urlretrieve(download_url, download_path, _hook)
 
     for asset in gh_assets:
         logging.info("Tring to upload asset to Gitee: %s", asset["name"])
