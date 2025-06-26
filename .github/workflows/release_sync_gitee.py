@@ -265,6 +265,7 @@ def main():
 
     except Exception as e:
         logging.fatal(str(e))
+        exit(1)
 
     finally:
         if os.path.exists(TEMP_DIR):
