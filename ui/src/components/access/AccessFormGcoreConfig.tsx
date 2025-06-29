@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { type AccessConfigForGcore } from "@/domain/access";
 
@@ -28,8 +28,7 @@ const AccessFormGcoreConfig = ({ form: formInst, formName, disabled, initialValu
     apiToken: z
       .string()
       .min(1, t("access.form.gcore_api_token.placeholder"))
-      .max(256, t("common.errmsg.string_max", { max: 256 }))
-      .trim(),
+      .max(256, t("common.errmsg.string_max", { max: 256 })),
   });
   const formRule = createSchemaFieldRule(formSchema);
 

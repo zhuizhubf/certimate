@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { type AccessConfigForACMECA } from "@/domain/access";
 
@@ -25,9 +25,9 @@ const AccessFormACMECAConfig = ({ form: formInst, formName, disabled, initialVal
   const { t } = useTranslation();
 
   const formSchema = z.object({
-    endpoint: z.string().url(t("common.errmsg.url_invalid")),
-    eabKid: z.string().trim().nullish(),
-    eabHmacKey: z.string().trim().nullish(),
+    endpoint: z.url(t("common.errmsg.url_invalid")),
+    eabKid: z.string().nullish(),
+    eabHmacKey: z.string().nullish(),
   });
   const formRule = createSchemaFieldRule(formSchema);
 

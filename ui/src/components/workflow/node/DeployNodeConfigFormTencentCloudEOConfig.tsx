@@ -1,11 +1,12 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { validDomainName } from "@/utils/validators";
 
 type DeployNodeConfigFormTencentCloudEOConfigFieldValues = Nullish<{
+  endpoint?: string;
   zoneId: string;
   domain: string;
 }>;
@@ -32,13 +33,13 @@ const DeployNodeConfigFormTencentCloudEOConfig = ({
   const { t } = useTranslation();
 
   const formSchema = z.object({
+    endpoint: z.string().nullish(),
     zoneId: z
-      .string({ message: t("workflow_node.deploy.form.tencentcloud_eo_zone_id.placeholder") })
-      .nonempty(t("workflow_node.deploy.form.tencentcloud_eo_zone_id.placeholder"))
-      .trim(),
+      .string(t("workflow_node.deploy.form.tencentcloud_eo_zone_id.placeholder"))
+      .nonempty(t("workflow_node.deploy.form.tencentcloud_eo_zone_id.placeholder")),
     domain: z
-      .string({ message: t("workflow_node.deploy.form.tencentcloud_eo_domain.placeholder") })
-      .refine((v) => validDomainName(v), t("common.errmsg.domain_invalid")),
+      .string(t("workflow_node.deploy.form.tencentcloud_eo_domain.placeholder"))
+      .refine((v) => validDomainName(v, { allowWildcard: true }), t("common.errmsg.domain_invalid")),
   });
   const formRule = createSchemaFieldRule(formSchema);
 
@@ -55,6 +56,15 @@ const DeployNodeConfigFormTencentCloudEOConfig = ({
       name={formName}
       onValuesChange={handleFormChange}
     >
+      <Form.Item
+        name="endpoint"
+        label={t("workflow_node.deploy.form.tencentcloud_eo_endpoint.label")}
+        rules={[formRule]}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_eo_endpoint.tooltip") }}></span>}
+      >
+        <Input allowClear placeholder={t("workflow_node.deploy.form.tencentcloud_eo_endpoint.placeholder")} />
+      </Form.Item>
+
       <Form.Item
         name="zoneId"
         label={t("workflow_node.deploy.form.tencentcloud_eo_zone_id.label")}

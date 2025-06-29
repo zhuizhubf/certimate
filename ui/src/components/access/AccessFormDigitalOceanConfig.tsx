@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { type AccessConfigForDigitalOcean } from "@/domain/access";
 
@@ -25,7 +25,7 @@ const AccessFormDigitalOceanConfig = ({ form: formInst, formName, disabled, init
   const { t } = useTranslation();
 
   const formSchema = z.object({
-    accessToken: z.string().nonempty(t("access.form.digitalocean_access_token.placeholder")).trim(),
+    accessToken: z.string().nonempty(t("access.form.digitalocean_access_token.placeholder")),
   });
   const formRule = createSchemaFieldRule(formSchema);
 

@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { type AccessConfigForDeSEC } from "@/domain/access";
 
@@ -28,8 +28,7 @@ const AccessFormDeSECConfig = ({ form: formInst, formName, disabled, initialValu
     token: z
       .string()
       .min(1, t("access.form.desec_token.placeholder"))
-      .max(256, t("common.errmsg.string_max", { max: 256 }))
-      .trim(),
+      .max(256, t("common.errmsg.string_max", { max: 256 })),
   });
   const formRule = createSchemaFieldRule(formSchema);
 

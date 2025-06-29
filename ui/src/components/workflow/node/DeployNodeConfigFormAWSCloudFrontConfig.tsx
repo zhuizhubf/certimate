@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input, Select } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 type DeployNodeConfigFormAWSCloudFrontConfigFieldValues = Nullish<{
   region: string;
@@ -33,9 +33,9 @@ const DeployNodeConfigFormAWSCloudFrontConfig = ({
   const { t } = useTranslation();
 
   const formSchema = z.object({
-    region: z.string().trim().nonempty(t("workflow_node.deploy.form.aws_cloudfront_region.placeholder")),
-    distributionId: z.string().trim().nonempty(t("workflow_node.deploy.form.aws_cloudfront_distribution_id.placeholder")),
-    certificateSource: z.string().trim().nonempty(t("workflow_node.deploy.form.aws_cloudfront_certificate_source.placeholder")),
+    region: z.string().nonempty(t("workflow_node.deploy.form.aws_cloudfront_region.placeholder")),
+    distributionId: z.string().nonempty(t("workflow_node.deploy.form.aws_cloudfront_distribution_id.placeholder")),
+    certificateSource: z.string().nonempty(t("workflow_node.deploy.form.aws_cloudfront_certificate_source.placeholder")),
   });
   const formRule = createSchemaFieldRule(formSchema);
 

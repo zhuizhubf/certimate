@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input, InputNumber } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { validPortNumber } from "@/utils/validators";
 
@@ -35,7 +35,7 @@ const DeployNodeConfigFormBaotaWAFSiteConfig = ({
   const { t } = useTranslation();
 
   const formSchema = z.object({
-    siteName: z.string().nonempty(t("workflow_node.deploy.form.baotawaf_site_name.placeholder")).trim(),
+    siteName: z.string().nonempty(t("workflow_node.deploy.form.baotawaf_site_name.placeholder")),
     sitePort: z.preprocess(
       (v) => Number(v),
       z

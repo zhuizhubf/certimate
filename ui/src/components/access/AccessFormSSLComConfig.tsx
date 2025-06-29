@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { type AccessConfigForSSLCom } from "@/domain/access";
 
@@ -29,13 +29,11 @@ const AccessFormSSLComConfig = ({ form: formInst, formName, disabled, initialVal
     eabKid: z
       .string()
       .min(1, t("access.form.sslcom_eab_kid.placeholder"))
-      .max(256, t("common.errmsg.string_max", { max: 256 }))
-      .trim(),
+      .max(256, t("common.errmsg.string_max", { max: 256 })),
     eabHmacKey: z
       .string()
       .min(1, t("access.form.sslcom_eab_hmac_key.placeholder"))
-      .max(256, t("common.errmsg.string_max", { max: 256 }))
-      .trim(),
+      .max(256, t("common.errmsg.string_max", { max: 256 })),
   });
   const formRule = createSchemaFieldRule(formSchema);
 

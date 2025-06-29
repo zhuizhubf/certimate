@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { type AccessConfigForUpyun } from "@/domain/access";
 
@@ -28,12 +28,10 @@ const AccessFormUpyunConfig = ({ form: formInst, formName, disabled, initialValu
   const formSchema = z.object({
     username: z
       .string()
-      .trim()
       .min(1, t("access.form.upyun_username.placeholder"))
       .max(64, t("common.errmsg.string_max", { max: 64 })),
     password: z
       .string()
-      .trim()
       .min(1, t("access.form.upyun_password.placeholder"))
       .max(64, t("common.errmsg.string_max", { max: 64 })),
   });

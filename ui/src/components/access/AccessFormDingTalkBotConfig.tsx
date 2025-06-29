@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { type AccessConfigForDingTalkBot } from "@/domain/access";
 
@@ -26,8 +26,8 @@ const AccessFormDingTalkBotConfig = ({ form: formInst, formName, disabled, initi
   const { t } = useTranslation();
 
   const formSchema = z.object({
-    webhookUrl: z.string().url(t("common.errmsg.url_invalid")),
-    secret: z.string().nonempty(t("access.form.dingtalkbot_secret.placeholder")).trim(),
+    webhookUrl: z.url(t("common.errmsg.url_invalid")),
+    secret: z.string().nonempty(t("access.form.dingtalkbot_secret.placeholder")),
   });
   const formRule = createSchemaFieldRule(formSchema);
 

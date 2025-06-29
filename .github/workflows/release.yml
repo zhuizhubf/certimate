@@ -19,8 +19,9 @@ jobs:
         with:
           node-version: 20.11.0
 
-      - name: Build WebUI
+      - name: Build UI
         run: |
+          echo "VITE_APP_VERSION=${GITHUB_REF#refs/tags/}" > ./ui/.env
           npm --prefix=./ui ci
           npm --prefix=./ui run build
 
@@ -58,10 +59,14 @@ jobs:
         run: |
           mkdir -p dist/linux
           for ARCH in amd64 arm64 armv7; do
-            if [ "$ARCH" = "armv7" ]; then
-              export GOARM=7
+            if [ "$ARCH" == "armv7" ]; then
+              go env -w GOARCH=arm
+              go env -w GOARM=7
+            else
+              go env -w GOARCH=$ARCH
+              go env -u GOARM
             fi
-            go build -ldflags="-s -w -X github.com/usual2970/certimate.Version=${GITHUB_REF#refs/tags/}" -o dist/linux/certimate_${GITHUB_REF#refs/tags/}_linux_$ARCH
+            go build -ldflags="-s -w -X github.com/certimate-go/certimate.Version=${GITHUB_REF#refs/tags/}" -o dist/linux/certimate_${GITHUB_REF#refs/tags/}_linux_$ARCH
           done
 
       - name: Upload Linux binaries
@@ -98,7 +103,8 @@ jobs:
         run: |
           mkdir -p dist/darwin
           for ARCH in amd64 arm64; do
-            go build -ldflags="-s -w -X github.com/usual2970/certimate.Version=${GITHUB_REF#refs/tags/}" -o dist/darwin/certimate_${GITHUB_REF#refs/tags/}_darwin_$ARCH
+            go env -w GOARCH=$ARCH
+            go build -ldflags="-s -w -X github.com/certimate-go/certimate.Version=${GITHUB_REF#refs/tags/}" -o dist/darwin/certimate_${GITHUB_REF#refs/tags/}_darwin_$ARCH
           done
 
       - name: Upload macOS binaries
@@ -135,7 +141,8 @@ jobs:
         run: |
           mkdir -p dist/windows
           for ARCH in amd64 arm64; do
-            go build -ldflags="-s -w -X github.com/usual2970/certimate.Version=${GITHUB_REF#refs/tags/}" -o dist/windows/certimate_${GITHUB_REF#refs/tags/}_windows_$ARCH.exe
+            go env -w GOARCH=$ARCH
+            go build -ldflags="-s -w -X github.com/certimate-go/certimate.Version=${GITHUB_REF#refs/tags/}" -o dist/windows/certimate_${GITHUB_REF#refs/tags/}_windows_$ARCH.exe
           done
 
       - name: Upload Windows binaries
@@ -168,7 +175,6 @@ jobs:
 
           find dist -type f -not -name "*.exe" -exec chmod +x {} \;
 
-          # 为每个二进制文件创建 zip 包
           cd dist
           for bin in certimate_*; do
             if [[ "$bin" == *".exe" ]]; then
@@ -179,7 +185,10 @@ jobs:
 
             tmpdir=$(mktemp -d)
             cp "$bin" "${tmpdir}/${entrypoint}"
-            cp ../README.md ../LICENSE.md ../CHANGELOG.md "$tmpdir"
+            cp ../LICENSE "$tmpdir/LICENSE"
+            cp ../README.md "$tmpdir/README_zhCN.md"
+            cp ../README_EN.md "$tmpdir/README_enUS.md"
+            cp ../CHANGELOG.md "$tmpdir/CHANGELOG.md"
 
             if [[ "$bin" == *".exe" ]]; then
               zip -j "${bin%.exe}.zip" "$tmpdir"/*
@@ -190,7 +199,6 @@ jobs:
             rm -rf "$tmpdir"
           done
 
-          # 创建校验和文件
           sha256sum *.zip > checksums.txt
 
       - name: Create Release

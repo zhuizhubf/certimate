@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 type ApplyNodeConfigFormHuaweiCloudDNSConfigFieldValues = Nullish<{
   region: string;
@@ -32,9 +32,8 @@ const ApplyNodeConfigFormHuaweiCloudDNSConfig = ({
 
   const formSchema = z.object({
     region: z
-      .string({ message: t("workflow_node.apply.form.huaweicloud_dns_region.placeholder") })
-      .nonempty(t("workflow_node.apply.form.huaweicloud_dns_region.placeholder"))
-      .trim(),
+      .string(t("workflow_node.apply.form.huaweicloud_dns_region.placeholder"))
+      .nonempty(t("workflow_node.apply.form.huaweicloud_dns_region.placeholder")),
   });
   const formRule = createSchemaFieldRule(formSchema);
 

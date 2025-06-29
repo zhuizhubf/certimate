@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import TextFileInput from "@/components/TextFileInput";
 import { type AccessConfigForKubernetes } from "@/domain/access";
@@ -26,7 +26,6 @@ const AccessFormKubernetesConfig = ({ form: formInst, formName, disabled, initia
   const formSchema = z.object({
     kubeConfig: z
       .string()
-      .trim()
       .max(20480, t("common.errmsg.string_max", { max: 20480 }))
       .nullish(),
   });

@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { type AccessConfigForConstellix } from "@/domain/access";
 
 type AccessFormConstellixConfigFieldValues = Nullish<AccessConfigForConstellix>;
@@ -25,8 +25,8 @@ const AccessFormConstellixConfig = ({ form: formInst, formName, disabled, initia
   const { t } = useTranslation();
 
   const formSchema = z.object({
-    apiKey: z.string().trim().nonempty(t("access.form.constellix_api_key.placeholder")),
-    secretKey: z.string().trim().nonempty(t("access.form.constellix_secret_key.placeholder")),
+    apiKey: z.string().nonempty(t("access.form.constellix_api_key.placeholder")),
+    secretKey: z.string().nonempty(t("access.form.constellix_secret_key.placeholder")),
   });
   const formRule = createSchemaFieldRule(formSchema);
 

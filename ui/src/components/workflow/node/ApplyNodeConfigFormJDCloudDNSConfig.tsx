@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 type ApplyNodeConfigFormJDCloudDNSConfigFieldValues = Nullish<{
   regionId: string;
@@ -32,9 +32,8 @@ const ApplyNodeConfigFormJDCloudDNSConfig = ({
 
   const formSchema = z.object({
     regionId: z
-      .string({ message: t("workflow_node.apply.form.jdcloud_dns_region_id.placeholder") })
-      .nonempty(t("workflow_node.apply.form.jdcloud_dns_region_id.placeholder"))
-      .trim(),
+      .string(t("workflow_node.apply.form.jdcloud_dns_region_id.placeholder"))
+      .nonempty(t("workflow_node.apply.form.jdcloud_dns_region_id.placeholder")),
   });
   const formRule = createSchemaFieldRule(formSchema);
 

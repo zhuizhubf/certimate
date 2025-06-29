@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { type AccessConfigForNameDotCom } from "@/domain/access";
 
@@ -29,13 +29,11 @@ const AccessFormNameDotComConfig = ({ form: formInst, formName, disabled, initia
     username: z
       .string()
       .min(1, t("access.form.namedotcom_username.placeholder"))
-      .max(64, t("common.errmsg.string_max", { max: 64 }))
-      .trim(),
+      .max(64, t("common.errmsg.string_max", { max: 64 })),
     apiToken: z
       .string()
       .min(1, t("access.form.namedotcom_api_token.placeholder"))
-      .max(64, t("common.errmsg.string_max", { max: 64 }))
-      .trim(),
+      .max(64, t("common.errmsg.string_max", { max: 64 })),
   });
   const formRule = createSchemaFieldRule(formSchema);
 

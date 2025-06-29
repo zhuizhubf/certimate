@@ -1,14 +1,14 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input, Select } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import Show from "@/components/Show";
 import { validDomainName } from "@/utils/validators";
 
 type DeployNodeConfigFormJDCloudALBConfigFieldValues = Nullish<{
-  resourceType: string;
   regionId: string;
+  resourceType: string;
   loadbalancerId?: string;
   listenerId?: string;
   domain?: string;
@@ -26,7 +26,9 @@ const RESOURCE_TYPE_LOADBALANCER = "loadbalancer" as const;
 const RESOURCE_TYPE_LISTENER = "listener" as const;
 
 const initFormModel = (): DeployNodeConfigFormJDCloudALBConfigFieldValues => {
-  return {};
+  return {
+    resourceType: RESOURCE_TYPE_LISTENER,
+  };
 };
 
 const DeployNodeConfigFormJDCloudALBConfig = ({
@@ -39,23 +41,18 @@ const DeployNodeConfigFormJDCloudALBConfig = ({
   const { t } = useTranslation();
 
   const formSchema = z.object({
-    resourceType: z.union([z.literal(RESOURCE_TYPE_LOADBALANCER), z.literal(RESOURCE_TYPE_LISTENER)], {
-      message: t("workflow_node.deploy.form.jdcloud_alb_resource_type.placeholder"),
-    }),
     regionId: z
-      .string({ message: t("workflow_node.deploy.form.jdcloud_alb_region_id.placeholder") })
-      .nonempty(t("workflow_node.deploy.form.jdcloud_alb_region_id.placeholder"))
-      .trim(),
+      .string(t("workflow_node.deploy.form.jdcloud_alb_region_id.placeholder"))
+      .nonempty(t("workflow_node.deploy.form.jdcloud_alb_region_id.placeholder")),
+    resourceType: z.literal([RESOURCE_TYPE_LOADBALANCER, RESOURCE_TYPE_LISTENER], t("workflow_node.deploy.form.jdcloud_alb_resource_type.placeholder")),
     loadbalancerId: z
       .string()
       .max(64, t("common.errmsg.string_max", { max: 64 }))
-      .trim()
       .nullish()
       .refine((v) => fieldResourceType !== RESOURCE_TYPE_LOADBALANCER || !!v?.trim(), t("workflow_node.deploy.form.jdcloud_alb_loadbalancer_id.placeholder")),
     listenerId: z
       .string()
       .max(64, t("common.errmsg.string_max", { max: 64 }))
-      .trim()
       .nullish()
       .refine((v) => fieldResourceType !== RESOURCE_TYPE_LISTENER || !!v?.trim(), t("workflow_node.deploy.form.jdcloud_alb_listener_id.placeholder")),
     domain: z
@@ -83,6 +80,15 @@ const DeployNodeConfigFormJDCloudALBConfig = ({
       name={formName}
       onValuesChange={handleFormChange}
     >
+      <Form.Item
+        name="regionId"
+        label={t("workflow_node.deploy.form.jdcloud_alb_region_id.label")}
+        rules={[formRule]}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.jdcloud_alb_region_id.tooltip") }}></span>}
+      >
+        <Input placeholder={t("workflow_node.deploy.form.jdcloud_alb_region_id.placeholder")} />
+      </Form.Item>
+
       <Form.Item name="resourceType" label={t("workflow_node.deploy.form.jdcloud_alb_resource_type.label")} rules={[formRule]}>
         <Select placeholder={t("workflow_node.deploy.form.jdcloud_alb_resource_type.placeholder")}>
           <Select.Option key={RESOURCE_TYPE_LOADBALANCER} value={RESOURCE_TYPE_LOADBALANCER}>
@@ -92,15 +98,6 @@ const DeployNodeConfigFormJDCloudALBConfig = ({
             {t("workflow_node.deploy.form.jdcloud_alb_resource_type.option.listener.label")}
           </Select.Option>
         </Select>
-      </Form.Item>
-
-      <Form.Item
-        name="regionId"
-        label={t("workflow_node.deploy.form.jdcloud_alb_region_id.label")}
-        rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.jdcloud_alb_region_id.tooltip") }}></span>}
-      >
-        <Input placeholder={t("workflow_node.deploy.form.jdcloud_alb_region_id.placeholder")} />
       </Form.Item>
 
       <Show when={fieldResourceType === RESOURCE_TYPE_LOADBALANCER}>

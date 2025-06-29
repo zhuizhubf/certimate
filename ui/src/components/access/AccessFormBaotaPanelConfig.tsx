@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input, Switch } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { type AccessConfigForBaotaPanel } from "@/domain/access";
 
@@ -26,8 +26,8 @@ const AccessFormBaotaPanelConfig = ({ form: formInst, formName, disabled, initia
   const { t } = useTranslation();
 
   const formSchema = z.object({
-    serverUrl: z.string().url(t("common.errmsg.url_invalid")),
-    apiKey: z.string().nonempty(t("access.form.baotapanel_api_key.placeholder")).trim(),
+    serverUrl: z.url(t("common.errmsg.url_invalid")),
+    apiKey: z.string().nonempty(t("access.form.baotapanel_api_key.placeholder")),
     allowInsecureConnections: z.boolean().nullish(),
   });
   const formRule = createSchemaFieldRule(formSchema);

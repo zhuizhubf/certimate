@@ -10,6 +10,7 @@ export interface AccessModel extends BaseModel {
       | AccessConfigForACMECA
       | AccessConfigForACMEHttpReq
       | AccessConfigForAliyun
+      | AccessConfigForAPISIX
       | AccessConfigForAWS
       | AccessConfigForAzure
       | AccessConfigForBaiduCloud
@@ -24,6 +25,7 @@ export interface AccessModel extends BaseModel {
       | AccessConfigForClouDNS
       | AccessConfigForCMCCCloud
       | AccessConfigForConstellix
+      | AccessConfigForCTCCCloud
       | AccessConfigForDeSEC
       | AccessConfigForDigitalOcean
       | AccessConfigForDingTalkBot
@@ -43,6 +45,7 @@ export interface AccessModel extends BaseModel {
       | AccessConfigForHetzner
       | AccessConfigForHuaweiCloud
       | AccessConfigForJDCloud
+      | AccessConfigForKong
       | AccessConfigForKubernetes
       | AccessConfigForLarkBot
       | AccessConfigForLeCDN
@@ -60,6 +63,7 @@ export interface AccessModel extends BaseModel {
       | AccessConfigForRatPanel
       | AccessConfigForSafeLine
       | AccessConfigForSlackBot
+      | AccessConfigForSpaceship
       | AccessConfigForSSH
       | AccessConfigForSSLCom
       | AccessConfigForTelegramBot
@@ -103,6 +107,12 @@ export type AccessConfigForAliyun = {
   accessKeyId: string;
   accessKeySecret: string;
   resourceGroupId?: string;
+};
+
+export type AccessConfigForAPISIX = {
+  serverUrl: string;
+  apiKey: string;
+  allowInsecureConnections?: boolean;
 };
 
 export type AccessConfigForAWS = {
@@ -176,6 +186,11 @@ export type AccessConfigForCMCCCloud = {
 export type AccessConfigForConstellix = {
   apiKey: string;
   secretKey: string;
+};
+
+export type AccessConfigForCTCCCloud = {
+  accessKeyId: string;
+  secretAccessKey: string;
 };
 
 export type AccessConfigForDeSEC = {
@@ -279,6 +294,12 @@ export type AccessConfigForJDCloud = {
   accessKeySecret: string;
 };
 
+export type AccessConfigForKong = {
+  serverUrl: string;
+  apiToken: string;
+  allowInsecureConnections?: boolean;
+};
+
 export type AccessConfigForKubernetes = {
   kubeConfig?: string;
 };
@@ -374,6 +395,11 @@ export type AccessConfigForSafeLine = {
 export type AccessConfigForSlackBot = {
   botToken: string;
   defaultChannelId?: string;
+};
+
+export type AccessConfigForSpaceship = {
+  apiKey: string;
+  apiSecret: string;
 };
 
 export type AccessConfigForSSH = {

@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { type AccessConfigForBaishan } from "@/domain/access";
 
@@ -28,8 +28,7 @@ const AccessFormBaishanConfig = ({ form: formInst, formName, disabled, initialVa
     apiToken: z
       .string()
       .min(1, t("access.form.baishan_api_token.placeholder"))
-      .max(64, t("common.errmsg.string_max", { max: 64 }))
-      .trim(),
+      .max(64, t("common.errmsg.string_max", { max: 64 })),
   });
   const formRule = createSchemaFieldRule(formSchema);
 

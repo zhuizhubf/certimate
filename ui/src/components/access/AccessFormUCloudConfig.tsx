@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { type AccessConfigForUCloud } from "@/domain/access";
 
@@ -29,17 +29,14 @@ const AccessFormUCloudConfig = ({ form: formInst, formName, disabled, initialVal
     privateKey: z
       .string()
       .min(1, t("access.form.ucloud_private_key.placeholder"))
-      .max(64, t("common.errmsg.string_max", { max: 64 }))
-      .trim(),
+      .max(64, t("common.errmsg.string_max", { max: 64 })),
     publicKey: z
       .string()
       .min(1, t("access.form.ucloud_public_key.placeholder"))
-      .max(64, t("common.errmsg.string_max", { max: 64 }))
-      .trim(),
+      .max(64, t("common.errmsg.string_max", { max: 64 })),
     projectId: z
       .string()
       .max(64, t("common.errmsg.string_max", { max: 64 }))
-      .trim()
       .nullish(),
   });
   const formRule = createSchemaFieldRule(formSchema);

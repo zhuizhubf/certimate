@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { type AccessConfigForVercel } from "@/domain/access";
 
@@ -28,12 +28,10 @@ const AccessFormVercelConfig = ({ form: formInst, formName, disabled, initialVal
     apiAccessToken: z
       .string()
       .min(1, t("access.form.vercel_api_access_token.placeholder"))
-      .max(256, t("common.errmsg.string_max", { max: 256 }))
-      .trim(),
+      .max(256, t("common.errmsg.string_max", { max: 256 })),
     teamId: z
       .string()
       .max(256, t("common.errmsg.string_max", { max: 256 }))
-      .trim()
       .nullish(),
   });
   const formRule = createSchemaFieldRule(formSchema);

@@ -1,11 +1,12 @@
 import { useTranslation } from "react-i18next";
 import { Alert, AutoComplete, Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import MultipleSplitValueInput from "@/components/MultipleSplitValueInput";
 
 type DeployNodeConfigFormTencentCloudSSLDeployConfigFieldValues = Nullish<{
+  endpoint?: string;
   region: string;
   resourceType: string;
   resourceIds: string;
@@ -35,19 +36,18 @@ const DeployNodeConfigFormTencentCloudSSLDeployConfig = ({
   const { t } = useTranslation();
 
   const formSchema = z.object({
+    endpoint: z.string().nullish(),
     region: z
-      .string({ message: t("workflow_node.deploy.form.tencentcloud_ssl_deploy_region.placeholder") })
-      .nonempty(t("workflow_node.deploy.form.tencentcloud_ssl_deploy_region.placeholder"))
-      .trim(),
+      .string(t("workflow_node.deploy.form.tencentcloud_ssl_deploy_region.placeholder"))
+      .nonempty(t("workflow_node.deploy.form.tencentcloud_ssl_deploy_region.placeholder")),
     resourceType: z
-      .string({ message: t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_type.placeholder") })
-      .nonempty(t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_type.placeholder"))
-      .trim(),
-    resourceIds: z.string({ message: t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_ids.placeholder") }).refine((v) => {
+      .string(t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_type.placeholder"))
+      .nonempty(t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_type.placeholder")),
+    resourceIds: z.string(t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_ids.placeholder")).refine((v) => {
       if (!v) return false;
       return String(v)
         .split(MULTIPLE_INPUT_SEPARATOR)
-        .every((e) => /^[A-Za-z0-9*._-|]+$/.test(e));
+        .every((e) => /^[A-Za-z0-9*._\-|]+$/.test(e));
     }, t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_ids.errmsg.invalid")),
   });
   const formRule = createSchemaFieldRule(formSchema);
@@ -65,6 +65,19 @@ const DeployNodeConfigFormTencentCloudSSLDeployConfig = ({
       name={formName}
       onValuesChange={handleFormChange}
     >
+      <Form.Item>
+        <Alert type="info" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_ssl_deploy.guide") }}></span>} />
+      </Form.Item>
+
+      <Form.Item
+        name="endpoint"
+        label={t("workflow_node.deploy.form.tencentcloud_ssl_deploy_endpoint.label")}
+        rules={[formRule]}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_ssl_deploy_endpoint.tooltip") }}></span>}
+      >
+        <Input allowClear placeholder={t("workflow_node.deploy.form.tencentcloud_ssl_deploy_endpoint.placeholder")} />
+      </Form.Item>
+
       <Form.Item
         name="region"
         label={t("workflow_node.deploy.form.tencentcloud_ssl_deploy_region.label")}
@@ -99,10 +112,6 @@ const DeployNodeConfigFormTencentCloudSSLDeployConfig = ({
           placeholderInModal={t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_ids.multiple_input_modal.placeholder")}
           splitOptions={{ trim: true, removeEmpty: true }}
         />
-      </Form.Item>
-
-      <Form.Item>
-        <Alert type="info" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_ssl_deploy.guide") }}></span>} />
       </Form.Item>
     </Form>
   );

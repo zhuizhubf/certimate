@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 type DeployNodeConfigFormAliyunCASConfigFieldValues = Nullish<{
   region: string;
@@ -29,10 +29,7 @@ const DeployNodeConfigFormAliyunCASConfig = ({
   const { t } = useTranslation();
 
   const formSchema = z.object({
-    region: z
-      .string({ message: t("workflow_node.deploy.form.aliyun_cas_region.placeholder") })
-      .nonempty(t("workflow_node.deploy.form.aliyun_cas_region.placeholder"))
-      .trim(),
+    region: z.string(t("workflow_node.deploy.form.aliyun_cas_region.placeholder")).nonempty(t("workflow_node.deploy.form.aliyun_cas_region.placeholder")),
   });
   const formRule = createSchemaFieldRule(formSchema);
 

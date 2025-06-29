@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { type AccessConfigForQiniu } from "@/domain/access";
 
@@ -29,13 +29,11 @@ const AccessFormQiniuConfig = ({ form: formInst, formName, disabled, initialValu
     accessKey: z
       .string()
       .min(1, t("access.form.qiniu_access_key.placeholder"))
-      .max(64, t("common.errmsg.string_max", { max: 64 }))
-      .trim(),
+      .max(64, t("common.errmsg.string_max", { max: 64 })),
     secretKey: z
       .string()
       .min(1, t("access.form.qiniu_secret_key.placeholder"))
-      .max(64, t("common.errmsg.string_max", { max: 64 }))
-      .trim(),
+      .max(64, t("common.errmsg.string_max", { max: 64 })),
   });
   const formRule = createSchemaFieldRule(formSchema);
 

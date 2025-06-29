@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input, Select } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { type AccessConfigForACMEHttpReq } from "@/domain/access";
 
@@ -26,17 +26,15 @@ const AccessFormACMEHttpReqConfig = ({ form: formInst, formName, disabled, initi
   const { t } = useTranslation();
 
   const formSchema = z.object({
-    endpoint: z.string().url(t("common.errmsg.url_invalid")),
+    endpoint: z.url(t("common.errmsg.url_invalid")),
     mode: z.string().nullish(),
     username: z
       .string()
       .max(256, t("common.errmsg.string_max", { max: 256 }))
-      .trim()
       .nullish(),
     password: z
       .string()
       .max(256, t("common.errmsg.string_max", { max: 256 }))
-      .trim()
       .nullish(),
   });
   const formRule = createSchemaFieldRule(formSchema);

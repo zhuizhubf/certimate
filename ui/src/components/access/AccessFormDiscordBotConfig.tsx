@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { type AccessConfigForDiscordBot } from "@/domain/access";
 
@@ -26,10 +26,9 @@ const AccessFormDiscordBotConfig = ({ form: formInst, formName, disabled, initia
 
   const formSchema = z.object({
     botToken: z
-      .string({ message: t("access.form.discordbot_token.placeholder") })
+      .string(t("access.form.discordbot_token.placeholder"))
       .min(1, t("access.form.discordbot_token.placeholder"))
-      .max(256, t("common.errmsg.string_max", { max: 256 }))
-      .trim(),
+      .max(256, t("common.errmsg.string_max", { max: 256 })),
     defaultChannelId: z.string().nullish(),
   });
   const formRule = createSchemaFieldRule(formSchema);

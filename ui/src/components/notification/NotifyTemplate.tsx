@@ -4,7 +4,7 @@ import { useRequest } from "ahooks";
 import { Button, Form, Input, Skeleton, message, notification } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { ClientResponseError } from "pocketbase";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import Show from "@/components/Show";
 import { type NotifyTemplatesSettingsContent, SETTINGS_NAMES, defaultNotifyTemplate } from "@/domain/settings";
@@ -27,13 +27,11 @@ const NotifyTemplateForm = ({ className, style }: NotifyTemplateFormProps) => {
     subject: z
       .string()
       .min(1, t("settings.notification.template.form.subject.placeholder"))
-      .max(1000, t("common.errmsg.string_max", { max: 1000 }))
-      .trim(),
+      .max(1000, t("common.errmsg.string_max", { max: 1000 })),
     message: z
       .string()
       .min(1, t("settings.notification.template.form.message.placeholder"))
-      .max(1000, t("common.errmsg.string_max", { max: 1000 }))
-      .trim(),
+      .max(1000, t("common.errmsg.string_max", { max: 1000 })),
   });
   const formRule = createSchemaFieldRule(formSchema);
   const {

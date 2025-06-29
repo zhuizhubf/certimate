@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { type AccessConfigForBaiduCloud } from "@/domain/access";
 
@@ -28,14 +28,12 @@ const AccessFormBaiduCloudConfig = ({ form: formInst, formName, disabled, initia
   const formSchema = z.object({
     accessKeyId: z
       .string()
-      .trim()
       .min(1, t("access.form.baiducloud_access_key_id.placeholder"))
       .max(64, t("common.errmsg.string_max", { max: 64 })),
     secretAccessKey: z
       .string()
       .min(1, t("access.form.baiducloud_secret_access_key.placeholder"))
-      .max(64, t("common.errmsg.string_max", { max: 64 }))
-      .trim(),
+      .max(64, t("common.errmsg.string_max", { max: 64 })),
   });
   const formRule = createSchemaFieldRule(formSchema);
 

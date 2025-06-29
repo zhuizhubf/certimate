@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { PlusOutlined as PlusOutlinedIcon, QuestionCircleOutlined as QuestionCircleOutlinedIcon } from "@ant-design/icons";
 import { Button, Divider, Flex, Form, type FormInstance, Select, Switch, Tooltip, Typography, theme } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import AccessEditModal from "@/components/access/AccessEditModal";
 import AccessSelect from "@/components/access/AccessSelect";
@@ -33,6 +33,7 @@ import DeployNodeConfigFormAliyunNLBConfig from "./DeployNodeConfigFormAliyunNLB
 import DeployNodeConfigFormAliyunOSSConfig from "./DeployNodeConfigFormAliyunOSSConfig";
 import DeployNodeConfigFormAliyunVODConfig from "./DeployNodeConfigFormAliyunVODConfig";
 import DeployNodeConfigFormAliyunWAFConfig from "./DeployNodeConfigFormAliyunWAFConfig";
+import DeployNodeConfigFormAPISIXConfig from "./DeployNodeConfigFormAPISIXConfig";
 import DeployNodeConfigFormAWSACMConfig from "./DeployNodeConfigFormAWSACMConfig";
 import DeployNodeConfigFormAWSCloudFrontConfig from "./DeployNodeConfigFormAWSCloudFrontConfig";
 import DeployNodeConfigFormAWSIAMConfig from "./DeployNodeConfigFormAWSIAMConfig";
@@ -47,6 +48,11 @@ import DeployNodeConfigFormBaotaWAFSiteConfig from "./DeployNodeConfigFormBaotaW
 import DeployNodeConfigFormBunnyCDNConfig from "./DeployNodeConfigFormBunnyCDNConfig.tsx";
 import DeployNodeConfigFormBytePlusCDNConfig from "./DeployNodeConfigFormBytePlusCDNConfig";
 import DeployNodeConfigFormCdnflyConfig from "./DeployNodeConfigFormCdnflyConfig";
+import DeployNodeConfigFormCTCCCloudAOConfig from "./DeployNodeConfigFormCTCCCloudAOConfig";
+import DeployNodeConfigFormCTCCCloudCDNConfig from "./DeployNodeConfigFormCTCCCloudCDNConfig";
+import DeployNodeConfigFormCTCCCloudELBConfig from "./DeployNodeConfigFormCTCCCloudELBConfig";
+import DeployNodeConfigFormCTCCCloudICDNConfig from "./DeployNodeConfigFormCTCCCloudICDNConfig";
+import DeployNodeConfigFormCTCCCloudLVDNConfig from "./DeployNodeConfigFormCTCCCloudLVDNConfig";
 import DeployNodeConfigFormDogeCloudCDNConfig from "./DeployNodeConfigFormDogeCloudCDNConfig";
 import DeployNodeConfigFormEdgioApplicationsConfig from "./DeployNodeConfigFormEdgioApplicationsConfig";
 import DeployNodeConfigFormFlexCDNConfig from "./DeployNodeConfigFormFlexCDNConfig";
@@ -59,6 +65,7 @@ import DeployNodeConfigFormJDCloudALBConfig from "./DeployNodeConfigFormJDCloudA
 import DeployNodeConfigFormJDCloudCDNConfig from "./DeployNodeConfigFormJDCloudCDNConfig";
 import DeployNodeConfigFormJDCloudLiveConfig from "./DeployNodeConfigFormJDCloudLiveConfig";
 import DeployNodeConfigFormJDCloudVODConfig from "./DeployNodeConfigFormJDCloudVODConfig";
+import DeployNodeConfigFormKongConfig from "./DeployNodeConfigFormKongConfig";
 import DeployNodeConfigFormKubernetesSecretConfig from "./DeployNodeConfigFormKubernetesSecretConfig";
 import DeployNodeConfigFormLeCDNConfig from "./DeployNodeConfigFormLeCDNConfig";
 import DeployNodeConfigFormLocalConfig from "./DeployNodeConfigFormLocalConfig";
@@ -77,8 +84,11 @@ import DeployNodeConfigFormTencentCloudCOSConfig from "./DeployNodeConfigFormTen
 import DeployNodeConfigFormTencentCloudCSSConfig from "./DeployNodeConfigFormTencentCloudCSSConfig.tsx";
 import DeployNodeConfigFormTencentCloudECDNConfig from "./DeployNodeConfigFormTencentCloudECDNConfig.tsx";
 import DeployNodeConfigFormTencentCloudEOConfig from "./DeployNodeConfigFormTencentCloudEOConfig.tsx";
+import DeployNodeConfigFormTencentCloudGAAPConfig from "./DeployNodeConfigFormTencentCloudGAAPConfig.tsx";
 import DeployNodeConfigFormTencentCloudSCFConfig from "./DeployNodeConfigFormTencentCloudSCFConfig";
+import DeployNodeConfigFormTencentCloudSSLConfig from "./DeployNodeConfigFormTencentCloudSSLConfig";
 import DeployNodeConfigFormTencentCloudSSLDeployConfig from "./DeployNodeConfigFormTencentCloudSSLDeployConfig";
+import DeployNodeConfigFormTencentCloudSSLUpdateConfig from "./DeployNodeConfigFormTencentCloudSSLUpdateConfig";
 import DeployNodeConfigFormTencentCloudVODConfig from "./DeployNodeConfigFormTencentCloudVODConfig";
 import DeployNodeConfigFormTencentCloudWAFConfig from "./DeployNodeConfigFormTencentCloudWAFConfig";
 import DeployNodeConfigFormUCloudUCDNConfig from "./DeployNodeConfigFormUCloudUCDNConfig.tsx";
@@ -129,12 +139,10 @@ const DeployNodeConfigForm = forwardRef<DeployNodeConfigFormInstance, DeployNode
     const { getWorkflowOuptutBeforeId } = useWorkflowStore(useZustandShallowSelector(["updateNode", "getWorkflowOuptutBeforeId"]));
 
     const formSchema = z.object({
-      certificate: z
-        .string({ message: t("workflow_node.deploy.form.certificate.placeholder") })
-        .nonempty(t("workflow_node.deploy.form.certificate.placeholder")),
-      provider: z.string({ message: t("workflow_node.deploy.form.provider.placeholder") }).nonempty(t("workflow_node.deploy.form.provider.placeholder")),
+      certificate: z.string(t("workflow_node.deploy.form.certificate.placeholder")).nonempty(t("workflow_node.deploy.form.certificate.placeholder")),
+      provider: z.string(t("workflow_node.deploy.form.provider.placeholder")).nonempty(t("workflow_node.deploy.form.provider.placeholder")),
       providerAccessId: z
-        .string({ message: t("workflow_node.deploy.form.provider_access.placeholder") })
+        .string(t("workflow_node.deploy.form.provider_access.placeholder"))
         .nullish()
         .refine((v) => {
           if (!fieldProvider) return true;
@@ -233,6 +241,8 @@ const DeployNodeConfigForm = forwardRef<DeployNodeConfigFormInstance, DeployNode
           return <DeployNodeConfigFormAliyunVODConfig {...nestedFormProps} />;
         case DEPLOYMENT_PROVIDERS.ALIYUN_WAF:
           return <DeployNodeConfigFormAliyunWAFConfig {...nestedFormProps} />;
+        case DEPLOYMENT_PROVIDERS.APISIX:
+          return <DeployNodeConfigFormAPISIXConfig {...nestedFormProps} />;
         case DEPLOYMENT_PROVIDERS.AWS_ACM:
           return <DeployNodeConfigFormAWSACMConfig {...nestedFormProps} />;
         case DEPLOYMENT_PROVIDERS.AWS_CLOUDFRONT:
@@ -261,6 +271,16 @@ const DeployNodeConfigForm = forwardRef<DeployNodeConfigFormInstance, DeployNode
           return <DeployNodeConfigFormBytePlusCDNConfig {...nestedFormProps} />;
         case DEPLOYMENT_PROVIDERS.CDNFLY:
           return <DeployNodeConfigFormCdnflyConfig {...nestedFormProps} />;
+        case DEPLOYMENT_PROVIDERS.CTCCCLOUD_AO:
+          return <DeployNodeConfigFormCTCCCloudAOConfig {...nestedFormProps} />;
+        case DEPLOYMENT_PROVIDERS.CTCCCLOUD_CDN:
+          return <DeployNodeConfigFormCTCCCloudCDNConfig {...nestedFormProps} />;
+        case DEPLOYMENT_PROVIDERS.CTCCCLOUD_ELB:
+          return <DeployNodeConfigFormCTCCCloudELBConfig {...nestedFormProps} />;
+        case DEPLOYMENT_PROVIDERS.CTCCCLOUD_ICDN:
+          return <DeployNodeConfigFormCTCCCloudICDNConfig {...nestedFormProps} />;
+        case DEPLOYMENT_PROVIDERS.CTCCCLOUD_LVDN:
+          return <DeployNodeConfigFormCTCCCloudLVDNConfig {...nestedFormProps} />;
         case DEPLOYMENT_PROVIDERS.DOGECLOUD_CDN:
           return <DeployNodeConfigFormDogeCloudCDNConfig {...nestedFormProps} />;
         case DEPLOYMENT_PROVIDERS.EDGIO_APPLICATIONS:
@@ -285,6 +305,8 @@ const DeployNodeConfigForm = forwardRef<DeployNodeConfigFormInstance, DeployNode
           return <DeployNodeConfigFormJDCloudLiveConfig {...nestedFormProps} />;
         case DEPLOYMENT_PROVIDERS.JDCLOUD_VOD:
           return <DeployNodeConfigFormJDCloudVODConfig {...nestedFormProps} />;
+        case DEPLOYMENT_PROVIDERS.KONG:
+          return <DeployNodeConfigFormKongConfig {...nestedFormProps} />;
         case DEPLOYMENT_PROVIDERS.KUBERNETES_SECRET:
           return <DeployNodeConfigFormKubernetesSecretConfig {...nestedFormProps} />;
         case DEPLOYMENT_PROVIDERS.LECDN:
@@ -321,10 +343,16 @@ const DeployNodeConfigForm = forwardRef<DeployNodeConfigFormInstance, DeployNode
           return <DeployNodeConfigFormTencentCloudECDNConfig {...nestedFormProps} />;
         case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_EO:
           return <DeployNodeConfigFormTencentCloudEOConfig {...nestedFormProps} />;
+        case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_GAAP:
+          return <DeployNodeConfigFormTencentCloudGAAPConfig {...nestedFormProps} />;
         case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_SCF:
           return <DeployNodeConfigFormTencentCloudSCFConfig {...nestedFormProps} />;
+        case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_SSL:
+          return <DeployNodeConfigFormTencentCloudSSLConfig {...nestedFormProps} />;
         case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_SSL_DEPLOY:
           return <DeployNodeConfigFormTencentCloudSSLDeployConfig {...nestedFormProps} />;
+        case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_SSL_UPDATE:
+          return <DeployNodeConfigFormTencentCloudSSLUpdateConfig {...nestedFormProps} />;
         case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_VOD:
           return <DeployNodeConfigFormTencentCloudVODConfig {...nestedFormProps} />;
         case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_WAF:
